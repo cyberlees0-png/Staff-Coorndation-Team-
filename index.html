@@ -1540,7 +1540,7 @@ async function confirmStart() {
   const type    = document.getElementById('inType').value;
   if (!name || !discord) { showToast('Fill in all fields', 'error'); return; }
 
-  await db.collection('members').doc(discord).set({ name, discordId: discord }, { merge: true });
+  await db.collection('staffcoord_members').doc(discord).set({ name, discordId: discord }, { merge: true });
 
   active = { name, discordId: discord, type, startTime: new Date().toISOString(), startTs: Date.now() };
   sessionStorage.setItem('mrp_active', JSON.stringify(active));
@@ -1549,7 +1549,7 @@ async function confirmStart() {
   document.getElementById('inDiscord').value = '';
   // publish active session so everyone sees it
   try {
-    await db.collection('actives').doc(discord).set({
+    await db.collection('staffcoord_actives').doc(discord).set({
       name: active.name,
       discordId: active.discordId,
       type: active.type,
@@ -1605,9 +1605,9 @@ async function confirmStop() {
   if (!summary) { showToast('Add a brief summary!', 'error'); return; }
   const el = Math.floor((Date.now() - active.startTs) / 1000);
   // remove active marker for this user so others see them go offline
-  try { await db.collection('actives').doc(active.discordId).delete(); } catch(e) { }
+  try { await db.collection('staffcoord_actives').doc(active.discordId).delete(); } catch(e) { }
 
-  await db.collection('sessions').add({
+  await db.collection('staffcoord_sessions').add({
     name:      active.name,
     discordId: active.discordId,
     type:      active.type,
@@ -1799,10 +1799,10 @@ async function removeMember(discordId) {
   const batch = db.batch();
 
   // Delete member doc
-  batch.delete(db.collection('members').doc(discordId));
+  batch.delete(db.collection('staffcoord_members').doc(discordId));
 
   // Delete all their sessions
-  const snap = await db.collection('sessions').where('discordId', '==', discordId).get();
+  const snap = await db.collection('staffcoord_sessions').where('discordId', '==', discordId).get();
   snap.forEach(d => batch.delete(d.ref));
 
   await batch.commit();
@@ -1812,7 +1812,7 @@ async function removeMember(discordId) {
 async function resetWeekly() {
   if (!confirm('Reset all weekly hours? This cannot be undone.')) return;
   weekStartTs = new Date().toISOString();
-  await db.collection('config').doc('settings').set({ weekStart: weekStartTs }, { merge: true });
+  await db.collection('staffcoord_config').doc('settings').set({ weekStart: weekStartTs }, { merge: true });
   renderLB();
   renderAdminStats();
   _adminList = buildAdminList();
@@ -1837,7 +1837,7 @@ async function forceStopSession(discordId) {
 
   try {
     // Save the session to Firestore
-    await db.collection('sessions').add({
+    await db.collection('staffcoord_sessions').add({
       name,
       discordId,
       type:      activeData.type || 'On Duty',
@@ -1848,7 +1848,7 @@ async function forceStopSession(discordId) {
     });
 
     // Remove from actives
-    await db.collection('actives').doc(discordId).delete();
+    await db.collection('staffcoord_actives').doc(discordId).delete();
 
     showToast(`Stopped session for ${name}. ${fmtH(duration)} logged.`, 'success');
     // Refresh admin panel
@@ -1922,7 +1922,7 @@ async function _addTime(b64) {
   if (sec <= 0) { showToast('Enter hours or minutes to add', 'error'); return; }
   const name = members[discordId]?.name || discordId;
 
-  await db.collection('sessions').add({
+  await db.collection('staffcoord_sessions').add({
     name, discordId,
     type:      'Admin Adjustment',
     startTime: new Date().toISOString(),
@@ -1945,7 +1945,7 @@ async function _removeTime(b64) {
   const name = members[discordId]?.name || discordId;
   let remaining = sec;
 
-  const snap = await db.collection('sessions')
+  const snap = await db.collection('staffcoord_sessions')
     .where('discordId', '==', discordId)
     .get();
 
@@ -1984,20 +1984,20 @@ function showToast(msg, type='') {
 }
 
 // ===== REAL-TIME LISTENERS =====
-db.collection('sessions').orderBy('endTime', 'asc').onSnapshot(snap => {
+db.collection('staffcoord_sessions').orderBy('endTime', 'asc').onSnapshot(snap => {
   sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderLB();
   renderLog();
   if (active) updateCard();
 });
 
-db.collection('members').onSnapshot(snap => {
+db.collection('staffcoord_members').onSnapshot(snap => {
   members = {};
   snap.forEach(d => { members[d.id] = d.data(); });
 });
 
 // listen for currently active sessions (shared across users)
-db.collection('actives').onSnapshot(snap => {
+db.collection('staffcoord_actives').onSnapshot(snap => {
   actives = {};
   snap.forEach(d => { actives[d.id] = d.data(); });
   updateActivesUI();
@@ -2024,7 +2024,7 @@ function updateActivesUI() {
   }
 }
 
-db.collection('config').doc('settings').get().then(d => {
+db.collection('staffcoord_config').doc('settings').get().then(d => {
   if (d.exists && d.data().weekStart) {
     weekStartTs = d.data().weekStart;
     renderLB();
@@ -2035,7 +2035,7 @@ db.collection('config').doc('settings').get().then(d => {
 // try to remove active marker if user closes tab (best-effort)
 window.addEventListener('beforeunload', () => {
   if (active && active.discordId) {
-    try { db.collection('actives').doc(active.discordId).delete(); } catch(e) {}
+    try { db.collection('staffcoord_actives').doc(active.discordId).delete(); } catch(e) {}
   }
 });
 if (active) startTicker();
@@ -2048,7 +2048,7 @@ function switchPage(pageId, btn) {
 }
 
 /* ===== MANAGEMENT ROSTER ===== */
-const MGMT_KEY = 'miamiMgmtRoster';
+const MGMT_KEY = 'staffcoord_MgmtRoster';
 const CATS = ['senior','management','junior','trial'];
 const CAT_LABELS = {senior:'Senior Staff Coordination', management:'Staff Coordination', junior:'Junior Staff Coordination', trial:'Trial Staff Coordination'};
 
@@ -2202,7 +2202,7 @@ function updateMgmtAdminUI() {
 renderRoster();
 
 /* ===== MIAMI DIRECTOR ===== */
-const DIR_KEY = 'miamiDirectorRoster';
+const DIR_KEY = 'staffcoord_DirectorRoster';
 const DIR_CATS = ['community','staff','department','gang'];
 const DIR_LABELS = {community:'Community Director', staff:'Staff Director', department:'Department Director', gang:'Gang Director'};
 const DIR_COLORS = {community:'rgba(0,229,255,0.5)', staff:'rgba(178,102,255,0.5)', department:'rgba(255,180,0,0.5)', gang:'rgba(255,60,60,0.5)'};
