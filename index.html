@@ -3015,7 +3015,7 @@ renderStaffRoster();
   if (rHint && !isAdmin) rHint.style.display = '';
 })();
 
-// Seed roster with members — always force update to match current roster
+// Seed roster with members — merge by discord ID, deduplicate
 (function seedRoster() {
   const seeds = [
     { name: 'Storm',    discord: '1285357136276093874', category: 'senior',     role: 'Senior Coordinator' },
@@ -3023,31 +3023,46 @@ renderStaffRoster();
     { name: 'Trap',     discord: '1043512569719169874', category: 'management', role: 'Staff Coordinator' },
     { name: 'Syn',      discord: '925454923499867600',  category: 'management', role: 'Staff Coordinator' },
     { name: 'Carlton',  discord: '705955726295564368',  category: 'management', role: 'Staff Coordinator' },
-    { name: 'Stylz',    discord: '913286527874175867',  category: 'trial',      role: 'Trial Staff Coordinator', trialPhase: true, trialPhaseStart: Date.now() },
-    { name: 'Leyne G',  discord: '1177943250518811247', category: 'trial',      role: 'Trial Staff Coordinator', trialPhase: true, trialPhaseStart: Date.now() },
-    { name: 'Jimothly', discord: '1084312804174082189', category: 'trial',      role: 'Trial Staff Coordinator', trialPhase: true, trialPhaseStart: Date.now() },
+    { name: 'Stylz',    discord: '913286527874175867',  category: 'trial',      role: 'Trial Staff Coordinator', trialPhase: true },
+    { name: 'Leyne G',  discord: '1177943250518811247', category: 'trial',      role: 'Trial Staff Coordinator', trialPhase: true },
+    { name: 'Jimothly', discord: '1084312804174082189', category: 'trial',      role: 'Trial Staff Coordinator', trialPhase: true },
   ];
-  // Merge: keep existing entries (preserve trialPhaseStart), add missing ones, update category/role for existing
+
   let roster = loadStaffRoster();
+
+  // Step 1: Deduplicate — keep only the first entry per discord ID
+  const seen = {};
+  roster = roster.filter(m => {
+    const key = m.discord || m.id;
+    if (seen[key]) return false;
+    seen[key] = true;
+    return true;
+  });
+
+  // Step 2: Merge seeds in
   seeds.forEach(seed => {
     const idx = roster.findIndex(m => m.discord === seed.discord);
     if (idx === -1) {
-      roster.push({ id: genId(), ...seed });
+      const entry = { id: genId(), ...seed };
+      if (seed.trialPhase) entry.trialPhaseStart = Date.now();
+      roster.push(entry);
     } else {
-      // Update category and role in case they moved, but preserve existing trialPhaseStart
+      roster[idx].name = seed.name;
       roster[idx].category = seed.category;
       roster[idx].role = seed.role;
-      if (seed.trialPhase && !roster[idx].trialPhaseStart) {
+      // Start trial timer if moving into trial and not already running
+      if (seed.category === 'trial' && seed.trialPhase && !roster[idx].trialPhaseStart) {
         roster[idx].trialPhase = true;
         roster[idx].trialPhaseStart = Date.now();
       }
-      // If moved out of trial, clear trial phase
+      // Clear trial if moved out
       if (seed.category !== 'trial') {
         roster[idx].trialPhase = false;
         roster[idx].trialPhaseStart = null;
       }
     }
   });
+
   saveStaffRoster(roster);
   renderStaffRoster();
 })();
