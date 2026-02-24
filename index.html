@@ -3014,6 +3014,28 @@ renderStaffRoster();
   const rHint = document.getElementById('rosterAdminHint');
   if (rHint && !isAdmin) rHint.style.display = '';
 })();
+
+// Seed roster with members from screenshot if not already present
+(function seedRoster() {
+  const seeds = [
+    { name: 'Storm',    discord: '1285357136276093874', category: 'senior',     role: 'Senior Coordinator' },
+    { name: 'Owen',     discord: '488485088984563712',  category: 'senior',     role: 'Senior Coordinator' },
+    { name: 'Trap',     discord: '1043512569719169874', category: 'management', role: 'Staff Coordinator' },
+    { name: 'Syn',      discord: '925454923499867600',  category: 'management', role: 'Staff Coordinator' },
+    { name: 'Stylz',    discord: '913286527874175867',  category: 'trial',      role: 'Trial Staff Coordinator', trialPhase: true, trialPhaseStart: Date.now() },
+    { name: 'Leyne G',  discord: '1177943250518811247', category: 'trial',      role: 'Trial Staff Coordinator', trialPhase: true, trialPhaseStart: Date.now() },
+    { name: 'Jimothly', discord: '1084312804174082189', category: 'trial',      role: 'Trial Staff Coordinator', trialPhase: true, trialPhaseStart: Date.now() },
+    { name: 'Carlton',  discord: '705955726295564368',  category: 'trial',      role: 'Trial Staff Coordinator', trialPhase: true, trialPhaseStart: Date.now() },
+  ];
+  let roster = loadStaffRoster();
+  // Only seed if roster is completely empty
+  if (roster.length === 0) {
+    seeds.forEach(s => roster.push({ id: genId(), ...s }));
+    saveStaffRoster(roster);
+  }
+  renderStaffRoster();
+})();
+
 setInterval(() => { checkTrialExpiry(); renderStaffRoster(); }, 60 * 60 * 1000);
 </script>
 </body>
