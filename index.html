@@ -3015,24 +3015,40 @@ renderStaffRoster();
   if (rHint && !isAdmin) rHint.style.display = '';
 })();
 
-// Seed roster with members from screenshot if not already present
+// Seed roster with members — always force update to match current roster
 (function seedRoster() {
   const seeds = [
     { name: 'Storm',    discord: '1285357136276093874', category: 'senior',     role: 'Senior Coordinator' },
     { name: 'Owen',     discord: '488485088984563712',  category: 'senior',     role: 'Senior Coordinator' },
     { name: 'Trap',     discord: '1043512569719169874', category: 'management', role: 'Staff Coordinator' },
     { name: 'Syn',      discord: '925454923499867600',  category: 'management', role: 'Staff Coordinator' },
+    { name: 'Carlton',  discord: '705955726295564368',  category: 'management', role: 'Staff Coordinator' },
     { name: 'Stylz',    discord: '913286527874175867',  category: 'trial',      role: 'Trial Staff Coordinator', trialPhase: true, trialPhaseStart: Date.now() },
     { name: 'Leyne G',  discord: '1177943250518811247', category: 'trial',      role: 'Trial Staff Coordinator', trialPhase: true, trialPhaseStart: Date.now() },
     { name: 'Jimothly', discord: '1084312804174082189', category: 'trial',      role: 'Trial Staff Coordinator', trialPhase: true, trialPhaseStart: Date.now() },
-    { name: 'Carlton',  discord: '705955726295564368',  category: 'trial',      role: 'Trial Staff Coordinator', trialPhase: true, trialPhaseStart: Date.now() },
   ];
+  // Merge: keep existing entries (preserve trialPhaseStart), add missing ones, update category/role for existing
   let roster = loadStaffRoster();
-  // Only seed if roster is completely empty
-  if (roster.length === 0) {
-    seeds.forEach(s => roster.push({ id: genId(), ...s }));
-    saveStaffRoster(roster);
-  }
+  seeds.forEach(seed => {
+    const idx = roster.findIndex(m => m.discord === seed.discord);
+    if (idx === -1) {
+      roster.push({ id: genId(), ...seed });
+    } else {
+      // Update category and role in case they moved, but preserve existing trialPhaseStart
+      roster[idx].category = seed.category;
+      roster[idx].role = seed.role;
+      if (seed.trialPhase && !roster[idx].trialPhaseStart) {
+        roster[idx].trialPhase = true;
+        roster[idx].trialPhaseStart = Date.now();
+      }
+      // If moved out of trial, clear trial phase
+      if (seed.category !== 'trial') {
+        roster[idx].trialPhase = false;
+        roster[idx].trialPhaseStart = null;
+      }
+    }
+  });
+  saveStaffRoster(roster);
   renderStaffRoster();
 })();
 
