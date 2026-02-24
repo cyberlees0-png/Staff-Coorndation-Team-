@@ -1262,14 +1262,9 @@
   <div class="page" id="page-roster">
 
     <div style="margin-bottom:24px;">
-      <div class="sec-title" style="margin-bottom:16px;">📋 Staff Coordination Roster</div>
-
-      <!-- Admin-only lock notice (shown to non-admins) -->
-      <div id="rosterLockNotice" style="text-align:center;padding:28px 20px;background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.1);border-radius:14px;margin-bottom:24px;">
-        <div style="font-size:1.8rem;margin-bottom:10px;">🔐</div>
-        <div style="font-family:'Bebas Neue',sans-serif;letter-spacing:3px;font-size:1rem;color:var(--muted);">ADMIN ACCESS REQUIRED</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:rgba(255,255,255,0.2);margin-top:6px;">Only admins can assign or manage roles</div>
-        <button class="btn btn-admin btn-sm" style="margin-top:14px;" onclick="openAdminLogin()">🔐 Login as Admin</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div class="sec-title">📋 Staff Coordination Roster</div>
+        <div id="rosterAdminHint" style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(255,255,255,0.18);display:none;">🔐 Login as admin to manage</div>
       </div>
 
       <!-- Inline Add Form (admin only) -->
@@ -2991,9 +2986,9 @@ const _origUpdateMgmtAdminUI = updateMgmtAdminUI;
 updateMgmtAdminUI = function() {
   _origUpdateMgmtAdminUI();
   const rForm = document.getElementById('rosterAddForm');
-  const rLock = document.getElementById('rosterLockNotice');
+  const rHint = document.getElementById('rosterAdminHint');
   if (rForm) rForm.style.display = isAdmin ? '' : 'none';
-  if (rLock) rLock.style.display = isAdmin ? 'none' : '';
+  if (rHint) rHint.style.display = isAdmin ? 'none' : '';
   renderStaffRoster();
 };
 
@@ -3014,8 +3009,11 @@ function submitRosterInline() {
 }
 
 renderStaffRoster();
-
-// Check trial expiry every hour while page is open
+// Show hint to non-admins on load
+(function() {
+  const rHint = document.getElementById('rosterAdminHint');
+  if (rHint && !isAdmin) rHint.style.display = '';
+})();
 setInterval(() => { checkTrialExpiry(); renderStaffRoster(); }, 60 * 60 * 1000);
 </script>
 </body>
