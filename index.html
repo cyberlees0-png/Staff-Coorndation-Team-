@@ -886,29 +886,57 @@
   .trial-phase-badge {
     display: inline-flex;
     align-items: center;
+    position: relative;
+    overflow: hidden;
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.6rem;
     letter-spacing: 0.5px;
-    padding: 3px 8px;
+    padding: 3px 10px;
     border-radius: 20px;
     border: 1px solid rgba(148,0,211,0.3);
-    color: rgba(148,0,211,0.4);
+    color: rgba(148,0,211,0.45);
     background: rgba(148,0,211,0.05);
     transition: all 0.2s;
     vertical-align: middle;
     white-space: nowrap;
+    gap: 4px;
+  }
+  .trial-phase-badge.inactive {
+    border-color: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.2);
+    background: transparent;
   }
   .trial-phase-badge.active {
-    border-color: rgba(255,180,0,0.7);
-    color: #ffb400;
-    background: rgba(255,180,0,0.1);
-    box-shadow: 0 0 8px rgba(255,180,0,0.25);
-    text-shadow: 0 0 6px rgba(255,180,0,0.4);
-  }
-  .trial-phase-badge[style*="pointer"]:hover {
-    border-color: rgba(255,180,0,0.5);
+    border-color: rgba(255,180,0,0.6);
     color: #ffb400;
     background: rgba(255,180,0,0.08);
+    box-shadow: 0 0 8px rgba(255,180,0,0.18);
+    text-shadow: 0 0 6px rgba(255,180,0,0.35);
+  }
+  .trial-phase-badge.active.urgent {
+    border-color: rgba(255,60,60,0.7);
+    color: #ff4444;
+    background: rgba(255,60,60,0.08);
+    box-shadow: 0 0 10px rgba(255,60,60,0.25);
+    text-shadow: 0 0 6px rgba(255,60,60,0.4);
+    animation: trialUrgentPulse 1.8s ease-in-out infinite;
+  }
+  @keyframes trialUrgentPulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(255,60,60,0.2); }
+    50%       { box-shadow: 0 0 16px rgba(255,60,60,0.5); }
+  }
+  .trial-progress {
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 2px;
+    width: var(--pct, 0%);
+    background: linear-gradient(90deg, #ffb400, #ff4444);
+    border-radius: 0 0 20px 20px;
+    transition: width 0.4s;
+  }
+  .trial-phase-badge[style*="pointer"]:hover {
+    filter: brightness(1.2);
+    transform: scale(1.04);
   }
   .mgmt-empty {
     font-family: 'JetBrains Mono', monospace;
@@ -1069,8 +1097,96 @@
     padding: 10px 16px;
     font-style: italic;
   }
+  /* Discord Auth */
+  .discord-login-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 13px 20px;
+    background: #5865F2;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 0 20px rgba(88,101,242,0.4);
+    margin-bottom: 12px;
+  }
+  .discord-login-btn:hover {
+    background: #4752c4;
+    box-shadow: 0 0 28px rgba(88,101,242,0.6);
+    transform: translateY(-1px);
+  }
+  .discord-login-btn svg { flex-shrink: 0; }
+  .discord-user-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(88,101,242,0.15);
+    border: 1px solid rgba(88,101,242,0.35);
+    border-radius: 20px;
+    padding: 4px 12px 4px 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .discord-user-chip:hover { background: rgba(88,101,242,0.25); }
+  .discord-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(88,101,242,0.5);
+  }
+  .discord-avatar-placeholder {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #5865F2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: white;
+    font-family: 'Bebas Neue', sans-serif;
+    flex-shrink: 0;
+  }
+  .discord-username {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: #8a9df7;
+  }
+  .discord-admin-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    color: #ffb400;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: rgba(255,180,0,0.1);
+    border: 1px solid rgba(255,180,0,0.3);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+  .auth-or-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0;
+    color: rgba(255,255,255,0.2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+  }
+  .auth-or-divider::before, .auth-or-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+  }
 </style>
-</head>
 <body>
 
 <!-- MIAMI BACKGROUND -->
@@ -1092,7 +1208,8 @@
         <div class="dot" id="globalDot"></div>
         <span id="globalStatus">No Active Sessions</span>
       </div>
-      <button class="btn btn-admin btn-sm" onclick="openAdminLogin()">🔐 Admin</button>
+      <div id="discordUserChip" style="display:none;" onclick="openDiscordLogout()"></div>
+      <button class="btn btn-admin btn-sm" id="adminLoginBtn" onclick="openAdminLogin()">🔐 Admin</button>
     </div>
   </header>
 
@@ -1572,17 +1689,47 @@
   </div>
 </div>
 
-<!-- ===== ADMIN LOGIN ===== -->
+<!-- ===== DISCORD AUTH LOGIN ===== -->
 <div class="overlay" id="adminLoginOverlay">
-  <div class="modal" style="max-width:380px;">
+  <div class="modal" style="max-width:400px;">
     <div class="modal-title"><div class="icon">🔐</div> Admin Access</div>
-    <div class="form-group">
-      <label>Password</label>
+
+    <!-- Discord OAuth button -->
+    <button class="discord-login-btn" onclick="startDiscordOAuth()">
+      <svg width="22" height="22" viewBox="0 0 71 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M60.1045 4.8978C55.5792 2.8214 50.7265 1.2916 45.6527 0.41542C45.5603 0.39851 45.468 0.440769 45.4204 0.525289C44.7963 1.6353 44.105 3.0834 43.6209 4.2216C38.1637 3.4046 32.7345 3.4046 27.3892 4.2216C26.905 3.0581 26.1886 1.6353 25.5617 0.525289C25.5141 0.443589 25.4218 0.40133 25.3294 0.41542C20.2584 1.2888 15.4057 2.8186 10.8776 4.8978C10.8384 4.9147 10.8048 4.9429 10.7825 4.9795C1.57795 18.7309 -0.943561 32.1443 0.293408 45.3914C0.299005 45.4562 0.335386 45.5182 0.385761 45.5576C6.45866 50.0174 12.3413 52.7249 18.1147 54.5195C18.2071 54.5477 18.305 54.5139 18.3638 54.4378C19.7295 52.5728 20.9469 50.6063 21.9907 48.5383C22.0523 48.4172 21.9935 48.2735 21.8676 48.2256C19.9366 47.4931 18.0979 46.6 16.3292 45.5858C16.1893 45.5041 16.1781 45.304 16.3068 45.2082C16.679 44.9293 17.0513 44.6391 17.4067 44.3461C17.471 44.2926 17.5606 44.2813 17.6362 44.3151C29.2558 49.6202 41.8354 49.6202 53.3179 44.3151C53.3935 44.2785 53.4831 44.2898 53.5502 44.3433C53.9057 44.6363 54.2779 44.9293 54.6529 45.2082C54.7816 45.304 54.7732 45.5041 54.6333 45.5858C52.8646 46.6197 51.0259 47.4931 49.0921 48.2228C48.9662 48.2707 48.9102 48.4172 48.9718 48.5383C50.038 50.6034 51.2554 52.5699 52.5959 54.435C52.6519 54.5139 52.7526 54.5477 52.845 54.5195C58.6464 52.7249 64.529 50.0174 70.6019 45.5576C70.6551 45.5182 70.6887 45.459 70.6943 45.3942C72.1747 30.0791 68.2147 16.7757 60.1968 4.9823C60.1772 4.9429 60.1437 4.9147 60.1045 4.8978ZM23.7259 37.3253C20.2276 37.3253 17.3451 34.1136 17.3451 30.1693C17.3451 26.225 20.1717 23.0133 23.7259 23.0133C27.308 23.0133 30.1626 26.2532 30.1066 30.1693C30.1066 34.1136 27.28 37.3253 23.7259 37.3253ZM47.3178 37.3253C43.8196 37.3253 40.9371 34.1136 40.9371 30.1693C40.9371 26.225 43.7636 23.0133 47.3178 23.0133C50.9 23.0133 53.7545 26.2532 53.6986 30.1693C53.6986 34.1136 50.9 37.3253 47.3178 37.3253Z" fill="white"/>
+      </svg>
+      LOGIN WITH DISCORD
+    </button>
+
+    <!-- Setup notice shown when Client ID not yet configured -->
+    <div id="discordSetupNotice" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(255,180,0,0.06);border:1px solid rgba(255,180,0,0.25);border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:#ffb400;line-height:1.6;">
+      ⚙️ <strong>Discord not configured yet.</strong><br>
+      Open the HTML file and set <code style="background:rgba(255,255,255,0.08);padding:1px 4px;border-radius:3px;">DISCORD_CLIENT_ID</code> and add your Discord User ID to <code style="background:rgba(255,255,255,0.08);padding:1px 4px;border-radius:3px;">ADMIN_DISCORD_IDS</code>.<br>
+      Use the password login below in the meantime.
+    </div>
+
+    <div class="auth-or-divider">or use password</div>
+
+    <!-- Fallback password -->
+    <div class="form-group" style="margin-bottom:0;">
+      <label>Admin Password</label>
       <input type="password" id="adminPwd" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')checkAdmin()" />
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('adminLoginOverlay')">Cancel</button>
       <button class="btn btn-primary btn-sm" onclick="checkAdmin()">ENTER</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DISCORD LOGOUT MODAL ===== -->
+<div class="overlay" id="discordLogoutOverlay">
+  <div class="modal" style="max-width:340px;text-align:center;">
+    <div id="discordLogoutContent"></div>
+    <div class="modal-footer" style="justify-content:center;gap:12px;">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('discordLogoutOverlay')">Close</button>
+      <button class="btn btn-stop btn-sm" onclick="logoutDiscord()">Logout</button>
     </div>
   </div>
 </div>
@@ -1651,6 +1798,28 @@ const db = firebase.firestore();
 
 const ADMIN_PASS = 'STAFFOT';
 
+// ===== DISCORD OAUTH CONFIG =====
+// HOW TO SET UP DISCORD LOGIN:
+// 1. Go to https://discord.com/developers/applications and create a New Application
+// 2. Go to OAuth2 → General, copy your Client ID and paste it below
+// 3. Under "Redirects", click "Add Redirect" and add the exact URL of this page
+// 4. Save changes in the Discord dev portal
+// 5. Add the Discord User IDs of admins to ADMIN_DISCORD_IDS below
+//    (To find a Discord User ID: Settings → Advanced → Enable Developer Mode,
+//     then right-click a username → Copy User ID)
+
+const DISCORD_CLIENT_ID = 'YOUR_CLIENT_ID_HERE'; // ← PASTE YOUR CLIENT ID HERE
+const DISCORD_REDIRECT_URI = window.location.href.split('#')[0].split('?')[0];
+const DISCORD_SCOPE = 'identify';
+
+// ↓ Add the Discord User IDs of people who should have admin access
+const ADMIN_DISCORD_IDS = [
+  // '123456789012345678',   ← replace with real Discord User IDs
+  // '987654321098765432',
+];
+
+let discordUser = null; // { id, username, avatar, discriminator }
+
 // ===== LOCAL STATE (mirrors Firestore) =====
 let sessions = [];   // array of session objects
 let members  = {};   // { discordId: { name, discordId } }
@@ -1710,7 +1879,137 @@ function checkAdmin() {
   }
 }
 
-// ===== START SESSION =====
+// ===== DISCORD OAUTH =====
+function startDiscordOAuth() {
+  if (DISCORD_CLIENT_ID === 'YOUR_CLIENT_ID_HERE') {
+    const notice = document.getElementById('discordSetupNotice');
+    if (notice) notice.style.display = '';
+    return;
+  }
+  // Hide notice if it was shown previously
+  const notice = document.getElementById('discordSetupNotice');
+  if (notice) notice.style.display = 'none';
+  const state = Math.random().toString(36).slice(2);
+  sessionStorage.setItem('discord_oauth_state', state);
+  const params = new URLSearchParams({
+    client_id: DISCORD_CLIENT_ID,
+    redirect_uri: DISCORD_REDIRECT_URI,
+    response_type: 'token',
+    scope: DISCORD_SCOPE,
+    state
+  });
+  window.location.href = 'https://discord.com/api/oauth2/authorize?' + params.toString();
+}
+
+async function handleDiscordCallback() {
+  const hash = window.location.hash.slice(1);
+  if (!hash) return;
+  const params = new URLSearchParams(hash);
+  const token = params.get('access_token');
+  if (!token) return;
+
+  // Clean the URL hash immediately
+  history.replaceState(null, '', window.location.pathname + window.location.search);
+  sessionStorage.removeItem('discord_oauth_state');
+
+  try {
+    showToast('Verifying Discord identity...', '');
+    const res = await fetch('https://discord.com/api/users/@me', {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (!res.ok) throw new Error('Discord API error ' + res.status);
+    const u = await res.json();
+
+    discordUser = {
+      id: u.id,
+      username: u.username,
+      avatar: u.avatar
+        ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64`
+        : `https://cdn.discordapp.com/embed/avatars/${Number(BigInt(u.id) % 5n)}.png`
+    };
+
+    sessionStorage.setItem('discord_user', JSON.stringify(discordUser));
+    closeModal('adminLoginOverlay');
+    applyDiscordUser();
+
+  } catch(e) {
+    console.error('Discord auth error:', e);
+    showToast('Discord login failed — try password instead', 'error');
+  }
+}
+
+function applyDiscordUser() {
+  if (!discordUser) return;
+
+  const isDiscordAdmin = ADMIN_DISCORD_IDS.includes(discordUser.id);
+  if (isDiscordAdmin) {
+    isAdmin = true;
+    updateMgmtAdminUI();
+    showToast(`Welcome, ${discordUser.username}! Admin access granted.`, 'success');
+  } else {
+    showToast(`Logged in as ${discordUser.username} — not on admin list`, 'error');
+  }
+
+  // Show avatar chip in header, hide the plain admin button
+  const chip = document.getElementById('discordUserChip');
+  const loginBtn = document.getElementById('adminLoginBtn');
+  if (chip) {
+    const initials = discordUser.username.slice(0,2).toUpperCase();
+    chip.innerHTML = `
+      <div class="discord-user-chip">
+        <img class="discord-avatar" src="${discordUser.avatar}"
+          alt="${discordUser.username}"
+          onerror="this.outerHTML='<div class=\\'discord-avatar-placeholder\\'>${initials}</div>'" />
+        <span class="discord-username">${discordUser.username}</span>
+        ${isDiscordAdmin ? '<span class="discord-admin-badge">ADMIN</span>' : ''}
+      </div>`;
+    chip.style.display = '';
+  }
+  if (loginBtn) loginBtn.style.display = 'none';
+}
+
+function openDiscordLogout() {
+  if (!discordUser) return;
+  const el = document.getElementById('discordLogoutContent');
+  if (el) {
+    el.innerHTML = `
+      <div style="font-size:2rem;margin-bottom:10px;">👋</div>
+      <div style="font-family:'Bebas Neue',sans-serif;letter-spacing:2px;font-size:1.1rem;color:var(--text);margin-bottom:6px;">${discordUser.username}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--muted);">Logged in via Discord</div>`;
+  }
+  openModal('discordLogoutOverlay');
+}
+
+function logoutDiscord() {
+  discordUser = null;
+  isAdmin = false;
+  sessionStorage.removeItem('discord_user');
+  // Restore header
+  const chip = document.getElementById('discordUserChip');
+  const loginBtn = document.getElementById('adminLoginBtn');
+  if (chip) { chip.innerHTML = ''; chip.style.display = 'none'; }
+  if (loginBtn) loginBtn.style.display = '';
+  updateMgmtAdminUI();
+  closeModal('discordLogoutOverlay');
+  showToast('Logged out of Discord', '');
+}
+
+// Restore Discord session if page was refreshed after OAuth redirect
+(function restoreDiscordSession() {
+  // First check if we're returning from OAuth
+  if (window.location.hash.includes('access_token')) {
+    handleDiscordCallback();
+    return;
+  }
+  // Otherwise restore saved session
+  const saved = sessionStorage.getItem('discord_user');
+  if (saved) {
+    try {
+      discordUser = JSON.parse(saved);
+      applyDiscordUser();
+    } catch(e) { sessionStorage.removeItem('discord_user'); }
+  }
+})();
 function openStartModal() {
   if (active) { showToast('Session already active!', 'error'); return; }
   openModal('startOverlay');
@@ -2509,6 +2808,7 @@ function loadStaffRoster() {
 function saveStaffRoster(roster) { localStorage.setItem(ROSTER_KEY, JSON.stringify(roster)); }
 
 function renderStaffRoster() {
+  checkTrialExpiry();
   const roster = loadStaffRoster();
   ROSTER_CATS.forEach(cat => {
     const list = document.getElementById('rlist-' + cat);
@@ -2524,17 +2824,33 @@ function renderStaffRoster() {
     catMembers.forEach(m => {
       const div = document.createElement('div');
       div.className = 'mgmt-member';
-      const trialBadge = cat === 'trial'
-        ? `<span class="trial-phase-badge ${m.trialPhase ? 'active' : ''}" 
-             title="${isAdmin ? 'Click to toggle 2-week trial phase' : ''}"
-             onclick="${isAdmin ? `toggleTrialPhase('${m.id}')` : ''}"
-             style="cursor:${isAdmin ? 'pointer' : 'default'}">
-             ⏱ 2 Week Trial Phase
-           </span>`
-        : '';
+
+      let trialBadge = '';
+      if (cat === 'trial') {
+        if (m.trialPhase && m.trialPhaseStart) {
+          const daysLeft = getTrialDaysLeft(m.trialPhaseStart);
+          const pct = Math.max(0, Math.min(100, ((14 - daysLeft) / 14) * 100));
+          const urgency = daysLeft <= 3 ? 'trial-phase-badge active urgent' : 'trial-phase-badge active';
+          trialBadge = `<span class="${urgency}"
+            title="${isAdmin ? 'Click to end trial phase' : `${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining`}"
+            onclick="${isAdmin ? `toggleTrialPhase('${m.id}')` : ''}"
+            style="cursor:${isAdmin ? 'pointer' : 'default'}">
+            ⏱ ${daysLeft}d left
+            <span class="trial-progress" style="--pct:${pct}%"></span>
+          </span>`;
+        } else {
+          trialBadge = `<span class="trial-phase-badge inactive"
+            title="${isAdmin ? 'Click to start 2-week trial phase' : 'Trial phase not started'}"
+            onclick="${isAdmin ? `toggleTrialPhase('${m.id}')` : ''}"
+            style="cursor:${isAdmin ? 'pointer' : 'default'}">
+            ⏱ 2 Wk Trial
+          </span>`;
+        }
+      }
+
       div.innerHTML = `
         <div class="mgmt-info">
-          <div class="mgmt-name" style="display:flex;align-items:center;gap:10px;">${escHtml(m.name)} ${trialBadge}</div>
+          <div class="mgmt-name" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">${escHtml(m.name)} ${trialBadge}</div>
           <div class="mgmt-role">${escHtml(m.role)}</div>
           <div class="mgmt-discord">${escHtml(m.discord)}</div>
         </div>
@@ -2623,10 +2939,37 @@ function toggleTrialPhase(id) {
   const roster = loadStaffRoster();
   const idx = roster.findIndex(x => x.id === id);
   if (idx === -1) return;
-  roster[idx].trialPhase = !roster[idx].trialPhase;
+  const wasActive = !!roster[idx].trialPhase;
+  roster[idx].trialPhase = !wasActive;
+  roster[idx].trialPhaseStart = !wasActive ? Date.now() : null;
   saveStaffRoster(roster);
   renderStaffRoster();
-  showToast(roster[idx].trialPhase ? '2 Week Trial Phase enabled' : 'Trial Phase removed', 'success');
+  showToast(!wasActive ? '⏱ 2-Week Trial Phase started!' : 'Trial Phase removed', !wasActive ? 'success' : '');
+}
+
+function checkTrialExpiry() {
+  const TWO_WEEKS = 14 * 24 * 60 * 60 * 1000;
+  const roster = loadStaffRoster();
+  let changed = false;
+  roster.forEach(m => {
+    if (m.trialPhase && m.trialPhaseStart && (Date.now() - m.trialPhaseStart) >= TWO_WEEKS) {
+      m.trialPhase = false;
+      m.trialPhaseStart = null;
+      changed = true;
+    }
+  });
+  if (changed) {
+    saveStaffRoster(roster);
+    showToast('A 2-week trial phase has automatically ended', '');
+  }
+  return roster;
+}
+
+function getTrialDaysLeft(trialPhaseStart) {
+  const TWO_WEEKS = 14 * 24 * 60 * 60 * 1000;
+  const msLeft = TWO_WEEKS - (Date.now() - trialPhaseStart);
+  if (msLeft <= 0) return 0;
+  return Math.ceil(msLeft / (24 * 60 * 60 * 1000));
 }
 
 function deleteRosterMember(id) {
@@ -2671,6 +3014,9 @@ function submitRosterInline() {
 }
 
 renderStaffRoster();
+
+// Check trial expiry every hour while page is open
+setInterval(() => { checkTrialExpiry(); renderStaffRoster(); }, 60 * 60 * 1000);
 </script>
 </body>
 </html>
