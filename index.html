@@ -1072,8 +1072,7 @@
   <!-- NAV TABS -->
   <nav class="nav-tabs">
     <button class="nav-tab active" onclick="switchPage('home', this)">🏠 Home</button>
-
-
+    <button class="nav-tab" onclick="switchPage('roster', this)">📋 Staff Coordination Roster</button>
   </nav>
 
   <!-- HOME PAGE -->
@@ -1114,6 +1113,84 @@
   <div id="logList"></div>
 
   </div><!-- /page-home -->
+
+  <!-- STAFF COORDINATION ROSTER PAGE -->
+  <div class="page" id="page-roster">
+
+    <div style="margin-bottom:24px;">
+      <div class="sec-title" style="margin-bottom:16px;">📋 Staff Coordination Roster</div>
+
+      <!-- Admin-only lock notice (shown to non-admins) -->
+      <div id="rosterLockNotice" style="text-align:center;padding:28px 20px;background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.1);border-radius:14px;margin-bottom:24px;">
+        <div style="font-size:1.8rem;margin-bottom:10px;">🔐</div>
+        <div style="font-family:'Bebas Neue',sans-serif;letter-spacing:3px;font-size:1rem;color:var(--muted);">ADMIN ACCESS REQUIRED</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:rgba(255,255,255,0.2);margin-top:6px;">Only admins can assign or manage roles</div>
+        <button class="btn btn-admin btn-sm" style="margin-top:14px;" onclick="openAdminLogin()">🔐 Login as Admin</button>
+      </div>
+
+      <!-- Inline Add Form (admin only) -->
+      <div id="rosterAddForm" style="display:none;">
+        <div class="glass" style="padding:18px 20px;border-radius:14px;margin-bottom:24px;border:1px solid rgba(0,229,255,0.18);">
+          <div style="font-family:'Bebas Neue',sans-serif;letter-spacing:2px;font-size:0.95rem;color:var(--cyan);margin-bottom:14px;text-shadow:0 0 8px rgba(0,229,255,0.4);">➕ ADD MEMBER</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div>
+              <label style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Name</label>
+              <input type="text" id="rInlineName" placeholder="e.g. John Doe"
+                style="width:100%;padding:9px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(0,229,255,0.18);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.83rem;box-sizing:border-box;outline:none;transition:border-color 0.2s;"
+                onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='rgba(0,229,255,0.18)'" />
+            </div>
+            <div>
+              <label style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Discord ID</label>
+              <input type="text" id="rInlineDiscord" placeholder="e.g. username#1234"
+                style="width:100%;padding:9px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(0,229,255,0.18);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.83rem;box-sizing:border-box;outline:none;transition:border-color 0.2s;"
+                onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='rgba(0,229,255,0.18)'"
+                onkeydown="if(event.key==='Enter') submitRosterInline()" />
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;">
+            <div>
+              <label style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Category</label>
+              <select id="rInlineCategory"
+                style="width:100%;padding:9px 12px;background:rgba(10,5,25,0.95);border:1px solid rgba(0,229,255,0.18);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.83rem;box-sizing:border-box;outline:none;">
+                <option value="senior">Senior Coordinator</option>
+                <option value="management">Staff Coordinator</option>
+                <option value="trial">Trial Staff Coordinator</option>
+              </select>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="submitRosterInline()" style="height:38px;white-space:nowrap;">✓ Add Member</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Senior Coordinator -->
+    <div class="mgmt-category cat-senior" id="rcat-senior">
+      <div class="mgmt-cat-header">
+        <span class="mgmt-cat-title">Senior Coordinator</span>
+        <span class="mgmt-cat-count" id="rcount-senior">0 members</span>
+      </div>
+      <div class="mgmt-list" id="rlist-senior"></div>
+    </div>
+
+    <!-- Staff Coordinator -->
+    <div class="mgmt-category cat-management" id="rcat-management">
+      <div class="mgmt-cat-header">
+        <span class="mgmt-cat-title">Staff Coordinator</span>
+        <span class="mgmt-cat-count" id="rcount-management">0 members</span>
+      </div>
+      <div class="mgmt-list" id="rlist-management"></div>
+    </div>
+
+    <!-- Trial Staff Coordinator -->
+    <div class="mgmt-category cat-trial" id="rcat-trial">
+      <div class="mgmt-cat-header">
+        <span class="mgmt-cat-title">Trial Staff Coordinator</span>
+        <span class="mgmt-cat-count" id="rcount-trial">0 members</span>
+      </div>
+      <div class="mgmt-list" id="rlist-trial"></div>
+    </div>
+
+  </div><!-- /page-roster -->
 
   <!-- MANAGEMENT JOBS PAGE -->
   <div class="page" id="page-jobs">
@@ -1333,6 +1410,84 @@
       </button>
       <div class="mgmt-modal-footer">
         <button class="btn btn-ghost btn-sm" onclick="closeMoveMember()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD ROSTER MEMBER MODAL -->
+  <div class="mgmt-modal-overlay" id="addRosterMemberOverlay">
+    <div class="mgmt-modal">
+      <div class="mgmt-modal-title">➕ Add Member</div>
+      <div class="mgmt-field">
+        <label>Name</label>
+        <input type="text" id="rAddName" placeholder="e.g. John Doe" />
+      </div>
+      <div class="mgmt-field">
+        <label>Job / Title</label>
+        <input type="text" id="rAddRole" placeholder="e.g. Staff Coordinator" />
+      </div>
+      <div class="mgmt-field">
+        <label>Discord ID</label>
+        <input type="text" id="rAddDiscord" placeholder="e.g. username#1234" />
+      </div>
+      <div class="mgmt-field">
+        <label>Category</label>
+        <select id="rAddCategory">
+          <option value="senior">Senior Coordinator</option>
+          <option value="management">Staff Coordinator</option>
+          <option value="trial">Trial Staff Coordinator</option>
+        </select>
+      </div>
+      <div class="mgmt-modal-footer">
+        <button class="btn btn-ghost btn-sm" onclick="closeAddRosterMember()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="confirmAddRosterMember()">✓ Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT ROSTER MEMBER MODAL -->
+  <div class="mgmt-modal-overlay" id="editRosterMemberOverlay">
+    <div class="mgmt-modal">
+      <div class="mgmt-modal-title">✏️ Edit Member</div>
+      <input type="hidden" id="rEditId" />
+      <div class="mgmt-field">
+        <label>Name</label>
+        <input type="text" id="rEditName" />
+      </div>
+      <div class="mgmt-field">
+        <label>Job / Title</label>
+        <input type="text" id="rEditRole" />
+      </div>
+      <div class="mgmt-field">
+        <label>Discord ID</label>
+        <input type="text" id="rEditDiscord" />
+      </div>
+      <div class="mgmt-modal-footer">
+        <button class="btn btn-ghost btn-sm" onclick="closeEditRosterMember()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="confirmEditRosterMember()">✓ Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOVE ROSTER MEMBER MODAL -->
+  <div class="mgmt-modal-overlay" id="moveRosterMemberOverlay">
+    <div class="mgmt-modal">
+      <div class="mgmt-modal-title">🔀 Move to Category</div>
+      <input type="hidden" id="rMoveId" />
+      <button class="move-cat-btn" onclick="confirmMoveRosterMember('senior')">
+        <span style="color:#ff4444;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;">Senior Coordinator</span>
+        <span class="mcat-label" style="color:var(--muted)">Highest tier — leadership & oversight</span>
+      </button>
+      <button class="move-cat-btn" onclick="confirmMoveRosterMember('management')">
+        <span style="color:#b266ff;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;">Staff Coordinator</span>
+        <span class="mcat-label" style="color:var(--muted)">Core coordination team</span>
+      </button>
+      <button class="move-cat-btn" onclick="confirmMoveRosterMember('trial')">
+        <span style="color:#9400d3;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;">Trial Staff Coordinator</span>
+        <span class="mcat-label" style="color:var(--muted)">Probationary / new additions</span>
+      </button>
+      <div class="mgmt-modal-footer">
+        <button class="btn btn-ghost btn-sm" onclick="closeMoveRosterMember()">Cancel</button>
       </div>
     </div>
   </div>
@@ -2315,6 +2470,161 @@ function deleteDirector(id) {
 })();
 
 renderDirectors();
+
+/* ===== STAFF COORDINATION ROSTER ===== */
+const ROSTER_KEY = 'staffcoord_StaffRoster';
+const ROSTER_CATS = ['senior','management','trial'];
+const ROSTER_LABELS = {senior:'Senior Coordinator', management:'Staff Coordinator', trial:'Trial Staff Coordinator'};
+
+function loadStaffRoster() {
+  try { return JSON.parse(localStorage.getItem(ROSTER_KEY)) || []; } catch(e) { return []; }
+}
+function saveStaffRoster(roster) { localStorage.setItem(ROSTER_KEY, JSON.stringify(roster)); }
+
+function renderStaffRoster() {
+  const roster = loadStaffRoster();
+  ROSTER_CATS.forEach(cat => {
+    const list = document.getElementById('rlist-' + cat);
+    const catMembers = roster.filter(m => m.category === cat);
+    const countEl = document.getElementById('rcount-' + cat);
+    if (countEl) countEl.textContent = catMembers.length + ' member' + (catMembers.length !== 1 ? 's' : '');
+    if (!list) return;
+    list.innerHTML = '';
+    if (catMembers.length === 0) {
+      list.innerHTML = '<div class="mgmt-empty">No members yet</div>';
+      return;
+    }
+    catMembers.forEach(m => {
+      const div = document.createElement('div');
+      div.className = 'mgmt-member';
+      div.innerHTML = `
+        <div class="mgmt-info">
+          <div class="mgmt-name">${escHtml(m.name)}</div>
+          <div class="mgmt-role">${escHtml(m.role)}</div>
+          <div class="mgmt-discord">${escHtml(m.discord)}</div>
+        </div>
+        <div class="mgmt-actions" style="${isAdmin ? '' : 'display:none;'}">
+          <button class="mgmt-btn" onclick="openMoveRosterMember('${m.id}')">⬆ Move</button>
+          <button class="mgmt-btn" onclick="openEditRosterMember('${m.id}')">✏</button>
+          <button class="mgmt-btn del" onclick="deleteRosterMember('${m.id}')">✕</button>
+        </div>`;
+      list.appendChild(div);
+    });
+  });
+}
+
+function openAddRosterMember() {
+  if (!isAdmin) { showToast('Admin access required', 'error'); return; }
+  document.getElementById('rAddName').value = '';
+  document.getElementById('rAddRole').value = '';
+  document.getElementById('rAddDiscord').value = '';
+  document.getElementById('rAddCategory').value = 'senior';
+  document.getElementById('addRosterMemberOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('rAddName').focus(), 50);
+}
+function closeAddRosterMember() { document.getElementById('addRosterMemberOverlay').classList.remove('open'); }
+function confirmAddRosterMember() {
+  const name = document.getElementById('rAddName').value.trim();
+  const role = document.getElementById('rAddRole').value.trim();
+  const discord = document.getElementById('rAddDiscord').value.trim();
+  const category = document.getElementById('rAddCategory').value;
+  if (!name || !role) { showToast('Name and role are required', 'error'); return; }
+  const roster = loadStaffRoster();
+  roster.push({ id: genId(), name, role, discord, category });
+  saveStaffRoster(roster);
+  renderStaffRoster();
+  closeAddRosterMember();
+  showToast('Member added!', 'success');
+}
+
+function openEditRosterMember(id) {
+  if (!isAdmin) { showToast('Admin access required', 'error'); return; }
+  const m = loadStaffRoster().find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('rEditId').value = id;
+  document.getElementById('rEditName').value = m.name;
+  document.getElementById('rEditRole').value = m.role;
+  document.getElementById('rEditDiscord').value = m.discord;
+  document.getElementById('editRosterMemberOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('rEditName').focus(), 50);
+}
+function closeEditRosterMember() { document.getElementById('editRosterMemberOverlay').classList.remove('open'); }
+function confirmEditRosterMember() {
+  const id = document.getElementById('rEditId').value;
+  const name = document.getElementById('rEditName').value.trim();
+  const role = document.getElementById('rEditRole').value.trim();
+  const discord = document.getElementById('rEditDiscord').value.trim();
+  if (!name || !role) { showToast('Name and role are required', 'error'); return; }
+  const roster = loadStaffRoster();
+  const idx = roster.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  roster[idx] = { ...roster[idx], name, role, discord };
+  saveStaffRoster(roster);
+  renderStaffRoster();
+  closeEditRosterMember();
+  showToast('Member updated!', 'success');
+}
+
+function openMoveRosterMember(id) {
+  if (!isAdmin) { showToast('Admin access required', 'error'); return; }
+  document.getElementById('rMoveId').value = id;
+  document.getElementById('moveRosterMemberOverlay').classList.add('open');
+}
+function closeMoveRosterMember() { document.getElementById('moveRosterMemberOverlay').classList.remove('open'); }
+function confirmMoveRosterMember(cat) {
+  const id = document.getElementById('rMoveId').value;
+  const roster = loadStaffRoster();
+  const idx = roster.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  roster[idx].category = cat;
+  saveStaffRoster(roster);
+  renderStaffRoster();
+  closeMoveRosterMember();
+  showToast('Moved to ' + ROSTER_LABELS[cat], 'success');
+}
+
+function deleteRosterMember(id) {
+  if (!isAdmin) { showToast('Admin access required', 'error'); return; }
+  if (!confirm('Remove this member from the roster?')) return;
+  saveStaffRoster(loadStaffRoster().filter(x => x.id !== id));
+  renderStaffRoster();
+  showToast('Member removed', 'success');
+}
+
+['addRosterMemberOverlay','editRosterMemberOverlay','moveRosterMemberOverlay'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+});
+
+// Extend admin UI to show roster inline form and hide lock notice
+const _origUpdateMgmtAdminUI = updateMgmtAdminUI;
+updateMgmtAdminUI = function() {
+  _origUpdateMgmtAdminUI();
+  const rForm = document.getElementById('rosterAddForm');
+  const rLock = document.getElementById('rosterLockNotice');
+  if (rForm) rForm.style.display = isAdmin ? '' : 'none';
+  if (rLock) rLock.style.display = isAdmin ? 'none' : '';
+  renderStaffRoster();
+};
+
+function submitRosterInline() {
+  if (!isAdmin) { showToast('Admin access required', 'error'); return; }
+  const name = document.getElementById('rInlineName').value.trim();
+  const discord = document.getElementById('rInlineDiscord').value.trim();
+  const category = document.getElementById('rInlineCategory').value;
+  if (!name) { showToast('Name is required', 'error'); return; }
+  const roster = loadStaffRoster();
+  roster.push({ id: genId(), name, role: ROSTER_LABELS[category], discord, category });
+  saveStaffRoster(roster);
+  renderStaffRoster();
+  document.getElementById('rInlineName').value = '';
+  document.getElementById('rInlineDiscord').value = '';
+  document.getElementById('rInlineName').focus();
+  showToast('Member added!', 'success');
+}
+
+renderStaffRoster();
 </script>
 </body>
 </html>
