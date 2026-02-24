@@ -883,6 +883,33 @@
   }
   .mgmt-btn:hover { border-color: rgba(0,229,255,0.4); color: var(--cyan); }
   .mgmt-btn.del:hover { border-color: rgba(255,60,60,0.4); color: #ff4444; }
+  .trial-phase-badge {
+    display: inline-flex;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid rgba(148,0,211,0.3);
+    color: rgba(148,0,211,0.4);
+    background: rgba(148,0,211,0.05);
+    transition: all 0.2s;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  .trial-phase-badge.active {
+    border-color: rgba(255,180,0,0.7);
+    color: #ffb400;
+    background: rgba(255,180,0,0.1);
+    box-shadow: 0 0 8px rgba(255,180,0,0.25);
+    text-shadow: 0 0 6px rgba(255,180,0,0.4);
+  }
+  .trial-phase-badge[style*="pointer"]:hover {
+    border-color: rgba(255,180,0,0.5);
+    color: #ffb400;
+    background: rgba(255,180,0,0.08);
+  }
   .mgmt-empty {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.72rem;
@@ -2497,9 +2524,17 @@ function renderStaffRoster() {
     catMembers.forEach(m => {
       const div = document.createElement('div');
       div.className = 'mgmt-member';
+      const trialBadge = cat === 'trial'
+        ? `<span class="trial-phase-badge ${m.trialPhase ? 'active' : ''}" 
+             title="${isAdmin ? 'Click to toggle 2-week trial phase' : ''}"
+             onclick="${isAdmin ? `toggleTrialPhase('${m.id}')` : ''}"
+             style="cursor:${isAdmin ? 'pointer' : 'default'}">
+             ⏱ 2 Week Trial Phase
+           </span>`
+        : '';
       div.innerHTML = `
         <div class="mgmt-info">
-          <div class="mgmt-name">${escHtml(m.name)}</div>
+          <div class="mgmt-name" style="display:flex;align-items:center;gap:10px;">${escHtml(m.name)} ${trialBadge}</div>
           <div class="mgmt-role">${escHtml(m.role)}</div>
           <div class="mgmt-discord">${escHtml(m.discord)}</div>
         </div>
@@ -2581,6 +2616,17 @@ function confirmMoveRosterMember(cat) {
   renderStaffRoster();
   closeMoveRosterMember();
   showToast('Moved to ' + ROSTER_LABELS[cat], 'success');
+}
+
+function toggleTrialPhase(id) {
+  if (!isAdmin) return;
+  const roster = loadStaffRoster();
+  const idx = roster.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  roster[idx].trialPhase = !roster[idx].trialPhase;
+  saveStaffRoster(roster);
+  renderStaffRoster();
+  showToast(roster[idx].trialPhase ? '2 Week Trial Phase enabled' : 'Trial Phase removed', 'success');
 }
 
 function deleteRosterMember(id) {
