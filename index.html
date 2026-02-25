@@ -1964,6 +1964,50 @@ const ADMIN_DISCORD_IDS = [
 
 let discordUser = null; // { id, username, avatar, discriminator }
 
+// ===== DISCORD WEBHOOK LOGGER =====
+// Paste your Discord webhook URL below to enable activity logging
+const LOG_WEBHOOK_URL = 'https://discord.com/api/webhooks/1476088995128541205/C_zc5RgcS17pQWGbv5UXfReEXe20Xp0RT6XgdwCci-Ixu4lkes61gDcJCrrvk1_4QnzK';
+
+async function sendLog(action, details = {}) {
+  if (!LOG_WEBHOOK_URL || LOG_WEBHOOK_URL === 'YOUR_WEBHOOK_URL_HERE') return;
+  const actor = discordUser ? `<@${discordUser.id}> (${discordUser.username})` : '🔐 Password Admin';
+  const now = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', hour12: true });
+  const colors = {
+    login:   0x5865F2,  // Discord blue
+    logout:  0x747F8D,  // grey
+    add:     0x57F287,  // green
+    remove:  0xED4245,  // red
+    move:    0xFEE75C,  // yellow
+    edit:    0x00E5FF,  // cyan
+    trial:   0xFFB400,  // gold
+    session: 0xEB459E,  // pink
+    overseer:0xB266FF,  // purple
+  };
+  const color = colors[details.type] || 0x00E5FF;
+
+  const fields = Object.entries(details)
+    .filter(([k]) => !['type'].includes(k))
+    .map(([name, value]) => ({ name, value: String(value), inline: true }));
+
+  const body = {
+    embeds: [{
+      title: action,
+      color,
+      fields,
+      footer: { text: `Miami Staff Portal • ${now}` },
+      ...(discordUser?.avatar ? { author: { name: discordUser.username, icon_url: discordUser.avatar } } : {})
+    }]
+  };
+
+  try {
+    await fetch(LOG_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+  } catch(e) { console.warn('Webhook log failed:', e); }
+}
+
 // ===== LOCAL STATE (mirrors Firestore) =====
 let sessions = [];   // array of session objects
 let members  = {};   // { discordId: { name, discordId } }
@@ -2090,8 +2134,10 @@ function applyDiscordUser() {
     isAdmin = true;
     updateMgmtAdminUI();
     showToast(`Welcome, ${discordUser.username}! Admin access granted.`, 'success');
+    sendLog('🔐 Admin Logged In via Discord', { type: 'login', User: discordUser.username, 'Discord ID': discordUser.id, 'Access Level': 'Admin' });
   } else {
     showToast(`Logged in as ${discordUser.username} — not on admin list`, 'error');
+    sendLog('👤 User Logged In via Discord', { type: 'login', User: discordUser.username, 'Discord ID': discordUser.id, 'Access Level': 'View Only' });
   }
 
   // Show avatar chip in header, hide the plain admin button
@@ -2125,10 +2171,10 @@ function openDiscordLogout() {
 }
 
 function logoutDiscord() {
+  const loggedOutUser = discordUser;
   discordUser = null;
   isAdmin = false;
   sessionStorage.removeItem('discord_user');
-  // Restore header
   const chip = document.getElementById('discordUserChip');
   const loginBtn = document.getElementById('adminLoginBtn');
   if (chip) { chip.innerHTML = ''; chip.style.display = 'none'; }
@@ -2136,6 +2182,7 @@ function logoutDiscord() {
   updateMgmtAdminUI();
   closeModal('discordLogoutOverlay');
   showToast('Logged out of Discord', '');
+  if (loggedOutUser) sendLog('🚪 User Logged Out', { type: 'logout', User: loggedOutUser.username, 'Discord ID': loggedOutUser.id });
 }
 
 // Restore Discord session if page was refreshed after OAuth redirect
@@ -3057,8 +3104,8 @@ function confirmEditRosterMember() {
   renderStaffRoster();
   closeEditRosterMember();
   showToast('Member updated!', 'success');
+  sendLog('✏️ Roster Member Edited', { type: 'edit', Name: name, Role: role, 'Discord ID': discord || '—', Section: 'Staff Coordination Roster' });
 }
-
 function openMoveRosterMember(id) {
   if (!isAdmin) { showToast('Admin access required', 'error'); return; }
   document.getElementById('rMoveId').value = id;
@@ -3070,13 +3117,14 @@ function confirmMoveRosterMember(cat) {
   const roster = loadStaffRoster();
   const idx = roster.findIndex(x => x.id === id);
   if (idx === -1) return;
+  const movedMember = roster[idx];
   roster[idx].category = cat;
   saveStaffRoster(roster);
   renderStaffRoster();
   closeMoveRosterMember();
   showToast('Moved to ' + ROSTER_LABELS[cat], 'success');
+  sendLog('🔀 Roster Member Moved', { type: 'move', Name: movedMember.name, From: ROSTER_LABELS[movedMember.category] || '—', To: ROSTER_LABELS[cat], Section: 'Staff Coordination Roster' });
 }
-
 function toggleTrialPhase(id) {
   if (!isAdmin) return;
   const roster = loadStaffRoster();
@@ -3088,8 +3136,8 @@ function toggleTrialPhase(id) {
   saveStaffRoster(roster);
   renderStaffRoster();
   showToast(!wasActive ? '⏱ 2-Week Trial Phase started!' : 'Trial Phase removed', !wasActive ? 'success' : '');
+  sendLog(!wasActive ? '⏱ Trial Phase Started' : '✅ Trial Phase Ended', { type: 'trial', Name: roster[idx].name, Status: !wasActive ? 'Started (14 days)' : 'Ended by admin', Section: 'Staff Coordination Roster' });
 }
-
 function checkTrialExpiry() {
   const TWO_WEEKS = 14 * 24 * 60 * 60 * 1000;
   const roster = loadStaffRoster();
@@ -3104,6 +3152,7 @@ function checkTrialExpiry() {
   if (changed) {
     saveStaffRoster(roster);
     showToast('A 2-week trial phase has automatically ended', '');
+    sendLog('⏰ Trial Phase Auto-Expired', { type: 'trial', Reason: '14-day period completed', Section: 'Staff Coordination Roster' });
   }
   return roster;
 }
@@ -3118,9 +3167,11 @@ function getTrialDaysLeft(trialPhaseStart) {
 function deleteRosterMember(id) {
   if (!isAdmin) { showToast('Admin access required', 'error'); return; }
   if (!confirm('Remove this member from the roster?')) return;
+  const member = loadStaffRoster().find(x => x.id === id);
   saveStaffRoster(loadStaffRoster().filter(x => x.id !== id));
   renderStaffRoster();
   showToast('Member removed', 'success');
+  if (member) sendLog('🗑️ Roster Member Removed', { type: 'remove', Name: member.name, Role: member.role || '—', Section: 'Staff Coordination Roster' });
 }
 
 ['addRosterMemberOverlay','editRosterMemberOverlay','moveRosterMemberOverlay'].forEach(id => {
@@ -3154,6 +3205,7 @@ function submitRosterInline() {
   document.getElementById('rInlineDiscord').value = '';
   document.getElementById('rInlineName').focus();
   showToast('Member added!', 'success');
+  sendLog('➕ Roster Member Added', { type: 'add', Name: name, Role: ROSTER_LABELS[category], 'Discord ID': discord || '—', Section: 'Staff Coordination Roster' });
 }
 
 renderStaffRoster();
@@ -3237,8 +3289,8 @@ function submitJobsInline() {
   document.getElementById('jInlineOverseer').value = '';
   document.getElementById('jInlineName').focus();
   showToast(name + ' added to ' + JOBS_LABELS[category] + '!', 'success');
+  sendLog('➕ Jobs Member Added', { type: 'add', Name: name, Team: JOBS_LABELS[category], 'Discord ID': discord || '—', ...(overseer ? { Overseer: overseer } : {}), Section: 'Staff Coordination Jobs' });
 }
-
 function openAssignOverseer(id) {
   if (!isAdmin) return;
   document.getElementById('jAssignId').value = id;
@@ -3258,18 +3310,20 @@ function confirmAssignOverseer() {
   renderJobsRoster();
   closeAssignOverseer();
   showToast('⭐ ' + role + ' assigned!', 'success');
+  sendLog('⭐ Overseer Role Assigned', { type: 'overseer', Name: roster[idx].name, Role: role, Team: JOBS_LABELS[roster[idx].category], Section: 'Staff Coordination Jobs' });
 }
 function removeJobsOverseer(id) {
   if (!isAdmin) return;
   const roster = loadJobsRoster();
   const idx = roster.findIndex(x => x.id === id);
   if (idx === -1) return;
+  const removedOverseer = roster[idx];
   roster[idx].overseer = null;
   saveJobsRoster(roster);
   renderJobsRoster();
   showToast('Overseer role removed', '');
+  sendLog('🔻 Overseer Role Removed', { type: 'overseer', Name: removedOverseer.name, 'Previous Role': removedOverseer.overseer || '—', Section: 'Staff Coordination Jobs' });
 }
-
 function openEditJobsMember(id) {
   if (!isAdmin) return;
   const m = loadJobsRoster().find(x => x.id === id);
@@ -3296,8 +3350,8 @@ function confirmEditJobsMember() {
   renderJobsRoster();
   closeEditJobsMember();
   showToast('Updated!', 'success');
+  sendLog('✏️ Jobs Member Edited', { type: 'edit', Name: name, Team: JOBS_LABELS[roster[idx].category], 'Discord ID': discord || '—', Section: 'Staff Coordination Jobs' });
 }
-
 function openMoveJobsMember(id) {
   if (!isAdmin) return;
   document.getElementById('jMoveId').value = id;
@@ -3309,19 +3363,22 @@ function confirmMoveJobsMember(cat) {
   const roster = loadJobsRoster();
   const idx = roster.findIndex(x => x.id === id);
   if (idx === -1) return;
+  const movedJob = roster[idx];
   roster[idx].category = cat;
   saveJobsRoster(roster);
   renderJobsRoster();
   closeMoveJobsMember();
   showToast('Moved to ' + JOBS_LABELS[cat], 'success');
+  sendLog('🔀 Jobs Member Moved', { type: 'move', Name: movedJob.name, From: JOBS_LABELS[movedJob.category] || '—', To: JOBS_LABELS[cat], Section: 'Staff Coordination Jobs' });
 }
-
 function deleteJobsMember(id) {
   if (!isAdmin) return;
   if (!confirm('Remove this member?')) return;
+  const member = loadJobsRoster().find(x => x.id === id);
   saveJobsRoster(loadJobsRoster().filter(x => x.id !== id));
   renderJobsRoster();
   showToast('Member removed', 'success');
+  if (member) sendLog('🗑️ Jobs Member Removed', { type: 'remove', Name: member.name, Team: JOBS_LABELS[member.category] || '—', Section: 'Staff Coordination Jobs' });
 }
 
 ['editJobsMemberOverlay','moveJobsMemberOverlay','assignOverseerOverlay'].forEach(id => {
