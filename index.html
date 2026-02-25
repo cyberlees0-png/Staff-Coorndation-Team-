@@ -1241,6 +1241,7 @@
     <button class="nav-tab" onclick="switchPage('roster', this)">📋 Staff Coordination Roster</button>
     <button class="nav-tab" onclick="switchPage('jobs', this)">💼 Staff Coordination Jobs</button>
     <button class="nav-tab" onclick="switchPage('director', this)">🌴 Miami Directors</button>
+    <button class="nav-tab" onclick="switchPage('apply', this)">📝 Apply</button>
   </nav>
 
   <!-- HOME PAGE -->
@@ -1493,6 +1494,47 @@
     </div>
 
   </div><!-- /page-director -->
+
+  <!-- APPLY PAGE -->
+  <div class="page" id="page-apply">
+    <div style="margin-bottom:32px;">
+      <div class="sec-title">📝 Staff Application</div>
+      <p style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--muted);margin-top:8px;line-height:1.6;">
+        Interested in joining the Miami Staff Coordination team? Click below to open the application. We'll review your submission and reach out via Discord.
+      </p>
+    </div>
+
+    <!-- Application card -->
+    <div class="glass" style="border-radius:18px;border:1px solid rgba(0,229,255,0.18);padding:40px 32px;text-align:center;box-shadow:0 0 50px rgba(0,229,255,0.06);">
+      <div style="font-size:3rem;margin-bottom:16px;">📋</div>
+      <div style="font-family:'Bebas Neue',sans-serif;letter-spacing:3px;font-size:1.4rem;color:var(--text);margin-bottom:8px;text-shadow:0 0 12px rgba(0,229,255,0.3);">STAFF COORDINATOR APPLICATION</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--muted);margin-bottom:32px;line-height:1.7;max-width:480px;margin-left:auto;margin-right:auto;">
+        Fill out the form to be considered for the Miami Staff Coordination team.<br>Applications are reviewed by senior staff — make sure your Discord is up to date.
+      </div>
+
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSeHy_M0RBdKmOptH2HIVUX9i4OfxHiY82Qlu3aZCEwZm8xJdQ/viewform"
+        target="_blank"
+        style="display:inline-flex;align-items:center;gap:10px;padding:14px 32px;background:linear-gradient(135deg,rgba(0,229,255,0.12),rgba(0,229,255,0.04));border:1px solid rgba(0,229,255,0.4);border-radius:12px;color:var(--cyan);font-family:'Bebas Neue',sans-serif;letter-spacing:2px;font-size:1rem;text-decoration:none;text-shadow:0 0 8px rgba(0,229,255,0.4);box-shadow:0 0 20px rgba(0,229,255,0.08);transition:all 0.2s;"
+        onmouseover="this.style.background='linear-gradient(135deg,rgba(0,229,255,0.2),rgba(0,229,255,0.08))';this.style.boxShadow='0 0 30px rgba(0,229,255,0.2)';this.style.transform='translateY(-1px)'"
+        onmouseout="this.style.background='linear-gradient(135deg,rgba(0,229,255,0.12),rgba(0,229,255,0.04))';this.style.boxShadow='0 0 20px rgba(0,229,255,0.08)';this.style.transform='translateY(0)'">
+        ↗ OPEN APPLICATION FORM
+      </a>
+
+      <div style="margin-top:20px;font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:rgba(255,255,255,0.2);">Opens in a new tab • Google Forms</div>
+    </div>
+
+    <!-- What we look for -->
+    <div style="margin-top:28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">
+      <div class="glass" style="border-radius:12px;border:1px solid rgba(255,180,0,0.15);padding:18px 20px;">
+        <div style="font-family:'Bebas Neue',sans-serif;letter-spacing:2px;font-size:0.85rem;color:#ffb400;margin-bottom:6px;">⭐ WHAT WE LOOK FOR</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.67rem;color:var(--muted);line-height:1.7;">Active & committed members<br>Good communication skills<br>Team-oriented attitude</div>
+      </div>
+      <div class="glass" style="border-radius:12px;border:1px solid rgba(0,229,255,0.15);padding:18px 20px;">
+        <div style="font-family:'Bebas Neue',sans-serif;letter-spacing:2px;font-size:0.85rem;color:var(--cyan);margin-bottom:6px;">📬 AFTER YOU APPLY</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.67rem;color:var(--muted);line-height:1.7;">We'll review your form<br>You'll be contacted via Discord<br>Review takes up to 7 days</div>
+      </div>
+    </div>
+  </div><!-- /page-apply -->
 
   <!-- ADD DIRECTOR MODAL -->
   <div class="mgmt-modal-overlay" id="addDirectorOverlay">
@@ -2727,7 +2769,7 @@ function switchPage(pageId, btn) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + pageId).classList.add('active');
   btn.classList.add('active');
-  const pageNames = { home: '🏠 Home', roster: '📋 Staff Coordination Roster', jobs: '💼 Staff Coordination Jobs', director: '🌴 Miami Directors' };
+  const pageNames = { home: '🏠 Home', roster: '📋 Staff Coordination Roster', jobs: '💼 Staff Coordination Jobs', director: '🌴 Miami Directors', apply: '📝 Apply' };
   sendLog('👁️ Page Visited', { type: 'login', Page: pageNames[pageId] || pageId, Visitor: discordUser ? discordUser.username : (isAdmin ? 'Password Admin' : 'Guest') });
 }
 
