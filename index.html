@@ -1240,6 +1240,7 @@
     <button class="nav-tab active" onclick="switchPage('home', this)">🏠 Home</button>
     <button class="nav-tab" onclick="switchPage('roster', this)">📋 Staff Coordination Roster</button>
     <button class="nav-tab" onclick="switchPage('jobs', this)">💼 Staff Coordination Jobs</button>
+    <button class="nav-tab" onclick="switchPage('director', this)">🌴 Miami Directors</button>
   </nav>
 
   <!-- HOME PAGE -->
@@ -2687,7 +2688,8 @@ function renderRoster() {
   CATS.forEach(cat => {
     const list = document.getElementById('list-' + cat);
     const members = roster.filter(m => m.category === cat);
-    document.getElementById('count-' + cat).textContent = members.length + ' member' + (members.length !== 1 ? 's' : '');
+    const countEl = document.getElementById('count-' + cat);
+    if (countEl) countEl.textContent = members.length + ' member' + (members.length !== 1 ? 's' : '');
     if (!list) return;
     list.innerHTML = '';
     if (members.length === 0) {
@@ -2814,8 +2816,6 @@ document.getElementById('editDiscord').addEventListener('keydown', e => { if(e.k
 
 // Init
 function updateMgmtAdminUI() {
-  const btn = document.getElementById('addMemberBtn');
-  if (btn) btn.style.display = isAdmin ? '' : 'none';
   const dBtn = document.getElementById('addDirectorBtn');
   if (dBtn) dBtn.style.display = isAdmin ? '' : 'none';
   renderRoster();
