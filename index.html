@@ -1950,14 +1950,16 @@ const ADMIN_PASS = 'STAFFOT';
 //    (To find a Discord User ID: Settings → Advanced → Enable Developer Mode,
 //     then right-click a username → Copy User ID)
 
-const DISCORD_CLIENT_ID = 'YOUR_CLIENT_ID_HERE'; // ← PASTE YOUR CLIENT ID HERE
-const DISCORD_REDIRECT_URI = window.location.href.split('#')[0].split('?')[0];
+const DISCORD_CLIENT_ID = '1476084326889160805';
+const DISCORD_REDIRECT_URI = 'https://staff-coorndation-team.vercel.app';
 const DISCORD_SCOPE = 'identify';
 
-// ↓ Add the Discord User IDs of people who should have admin access
+// Admin Discord User IDs — these users get admin access when logging in via Discord
 const ADMIN_DISCORD_IDS = [
-  // '123456789012345678',   ← replace with real Discord User IDs
-  // '987654321098765432',
+  '858115451569569794',
+  '1178525155522248813',
+  '12078717988936089803',
+  '719430241617051710',
 ];
 
 let discordUser = null; // { id, username, avatar, discriminator }
