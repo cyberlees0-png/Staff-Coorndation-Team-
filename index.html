@@ -1186,6 +1186,28 @@
     height: 1px;
     background: rgba(255,255,255,0.1);
   }
+  .overseer-badge {
+    display: inline-flex;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.5px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,180,0,0.5);
+    color: #ffb400;
+    background: rgba(255,180,0,0.08);
+    box-shadow: 0 0 8px rgba(255,180,0,0.15);
+    text-shadow: 0 0 6px rgba(255,180,0,0.3);
+    white-space: nowrap;
+    vertical-align: middle;
+    transition: all 0.2s;
+  }
+  .overseer-badge.clickable:hover {
+    background: rgba(255,180,0,0.18);
+    box-shadow: 0 0 14px rgba(255,180,0,0.35);
+    transform: scale(1.04);
+  }
 </style>
 <body>
 
@@ -1217,6 +1239,7 @@
   <nav class="nav-tabs">
     <button class="nav-tab active" onclick="switchPage('home', this)">🏠 Home</button>
     <button class="nav-tab" onclick="switchPage('roster', this)">📋 Staff Coordination Roster</button>
+    <button class="nav-tab" onclick="switchPage('jobs', this)">💼 Staff Coordination Jobs</button>
   </nav>
 
   <!-- HOME PAGE -->
@@ -1264,7 +1287,7 @@
     <div style="margin-bottom:24px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
         <div class="sec-title">📋 Staff Coordination Roster</div>
-        <div id="rosterAdminHint" style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(255,255,255,0.18);display:none;">🔐 Login as admin to manage</div>
+        <div id="rosterAdminHint" style="display:none;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:rgba(255,180,0,0.7);background:rgba(255,180,0,0.08);border:1px solid rgba(255,180,0,0.25);border-radius:8px;padding:5px 12px;letter-spacing:0.5px;">🔐 Login as admin to manage</div>
       </div>
 
       <!-- Inline Add Form (admin only) -->
@@ -1331,48 +1354,96 @@
 
   </div><!-- /page-roster -->
 
-  <!-- MANAGEMENT JOBS PAGE -->
+  <!-- STAFF COORDINATION JOBS PAGE -->
   <div class="page" id="page-jobs">
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-      <div class="sec-title">💼 Staff Coordination Roster</div>
-      <button class="btn btn-primary btn-sm" id="addMemberBtn" style="display:none;" onclick="openAddMember()">+ Add Member</button>
+    <div style="margin-bottom:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div class="sec-title">💼 Staff Coordination Jobs</div>
+        <div id="jobsAdminHint" style="display:none;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:rgba(255,180,0,0.7);background:rgba(255,180,0,0.08);border:1px solid rgba(255,180,0,0.25);border-radius:8px;padding:5px 12px;letter-spacing:0.5px;">🔐 Login as admin to manage</div>
+      </div>
+
+      <!-- Inline Add Form (admin only) -->
+      <div id="jobsAddForm" style="display:none;">
+        <div class="glass" style="padding:18px 20px;border-radius:14px;margin-bottom:24px;border:1px solid rgba(0,229,255,0.18);">
+          <div style="font-family:'Bebas Neue',sans-serif;letter-spacing:2px;font-size:0.95rem;color:var(--cyan);margin-bottom:14px;text-shadow:0 0 8px rgba(0,229,255,0.4);">➕ ADD MEMBER</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div>
+              <label style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Name</label>
+              <input type="text" id="jInlineName" placeholder="e.g. John Doe"
+                style="width:100%;padding:9px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(0,229,255,0.18);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.83rem;box-sizing:border-box;outline:none;transition:border-color 0.2s;"
+                onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='rgba(0,229,255,0.18)'" />
+            </div>
+            <div>
+              <label style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Discord ID</label>
+              <input type="text" id="jInlineDiscord" placeholder="e.g. username#1234"
+                style="width:100%;padding:9px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(0,229,255,0.18);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.83rem;box-sizing:border-box;outline:none;transition:border-color 0.2s;"
+                onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='rgba(0,229,255,0.18)'"
+                onkeydown="if(event.key==='Enter') submitJobsInline()" />
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;">
+            <div>
+              <label style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Team</label>
+              <select id="jInlineCategory"
+                style="width:100%;padding:9px 12px;background:rgba(10,5,25,0.95);border:1px solid rgba(0,229,255,0.18);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.83rem;box-sizing:border-box;outline:none;">
+                <option value="training">Training Team</option>
+                <option value="events">Events Team</option>
+                <option value="support">Support Team</option>
+                <option value="appeals">Appeals Team</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Overseer Role</label>
+              <select id="jInlineOverseer"
+                style="width:100%;padding:9px 12px;background:rgba(10,5,25,0.95);border:1px solid rgba(0,229,255,0.18);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.83rem;box-sizing:border-box;outline:none;">
+                <option value="">— No Overseer Role —</option>
+                <option value="Events Team Overseer">Events Team Overseer</option>
+                <option value="Training Team Overseer">Training Team Overseer</option>
+                <option value="Appeals Team Overseer">Appeals Team Overseer</option>
+                <option value="Support Team Overseer">Support Team Overseer</option>
+              </select>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="submitJobsInline()" style="height:38px;white-space:nowrap;">✓ Add Member</button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Senior Staff Coordination -->
-    <div class="mgmt-category cat-senior" id="cat-senior">
-      <div class="mgmt-cat-header">
-        <span class="mgmt-cat-title">Senior Staff Coordination</span>
-        <span class="mgmt-cat-count" id="count-senior">0 members</span>
+    <!-- Training Team -->
+    <div class="mgmt-category" id="jcat-training" style="margin-bottom:28px;">
+      <div class="mgmt-cat-header" style="border-color:rgba(0,229,255,0.35);">
+        <span class="mgmt-cat-title" style="color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,0.5);">🎓 Training Team</span>
+        <span class="mgmt-cat-count" id="jcount-training">0 members</span>
       </div>
-      <div class="mgmt-list" id="list-senior"></div>
+      <div class="mgmt-list" id="jlist-training"></div>
     </div>
 
-    <!-- Staff Coordination -->
-    <div class="mgmt-category cat-management" id="cat-management">
-      <div class="mgmt-cat-header">
-        <span class="mgmt-cat-title">Staff Coordination</span>
-        <span class="mgmt-cat-count" id="count-management">0 members</span>
+    <!-- Events Team -->
+    <div class="mgmt-category" id="jcat-events" style="margin-bottom:28px;">
+      <div class="mgmt-cat-header" style="border-color:rgba(255,180,0,0.35);">
+        <span class="mgmt-cat-title" style="color:#ffb400;text-shadow:0 0 10px rgba(255,180,0,0.5);">🎉 Events Team</span>
+        <span class="mgmt-cat-count" id="jcount-events">0 members</span>
       </div>
-      <div class="mgmt-list" id="list-management"></div>
+      <div class="mgmt-list" id="jlist-events"></div>
     </div>
 
-    <!-- Junior Staff Coordination -->
-    <div class="mgmt-category cat-junior" id="cat-junior">
-      <div class="mgmt-cat-header">
-        <span class="mgmt-cat-title">Junior Staff Coordination</span>
-        <span class="mgmt-cat-count" id="count-junior">0 members</span>
+    <!-- Support Team -->
+    <div class="mgmt-category" id="jcat-support" style="margin-bottom:28px;">
+      <div class="mgmt-cat-header" style="border-color:rgba(178,102,255,0.35);">
+        <span class="mgmt-cat-title" style="color:#b266ff;text-shadow:0 0 10px rgba(178,102,255,0.5);">🛠 Support Team</span>
+        <span class="mgmt-cat-count" id="jcount-support">0 members</span>
       </div>
-      <div class="mgmt-list" id="list-junior"></div>
+      <div class="mgmt-list" id="jlist-support"></div>
     </div>
 
-    <!-- Trial Staff Coordination -->
-    <div class="mgmt-category cat-trial" id="cat-trial">
-      <div class="mgmt-cat-header">
-        <span class="mgmt-cat-title">Trial Staff Coordination</span>
-        <span class="mgmt-cat-count" id="count-trial">0 members</span>
+    <!-- Appeals Team -->
+    <div class="mgmt-category" id="jcat-appeals" style="margin-bottom:28px;">
+      <div class="mgmt-cat-header" style="border-color:rgba(255,60,60,0.35);">
+        <span class="mgmt-cat-title" style="color:#ff4444;text-shadow:0 0 10px rgba(255,60,60,0.5);">⚖️ Appeals Team</span>
+        <span class="mgmt-cat-count" id="jcount-appeals">0 members</span>
       </div>
-      <div class="mgmt-list" id="list-trial"></div>
+      <div class="mgmt-list" id="jlist-appeals"></div>
     </div>
 
   </div><!-- /page-jobs -->
@@ -1627,6 +1698,81 @@
       </button>
       <div class="mgmt-modal-footer">
         <button class="btn btn-ghost btn-sm" onclick="closeMoveRosterMember()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT JOBS MEMBER MODAL -->
+  <div class="mgmt-modal-overlay" id="editJobsMemberOverlay">
+    <div class="mgmt-modal">
+      <div class="mgmt-modal-title">✏️ Edit Member</div>
+      <input type="hidden" id="jEditId" />
+      <div class="mgmt-field">
+        <label>Name</label>
+        <input type="text" id="jEditName" />
+      </div>
+      <div class="mgmt-field">
+        <label>Discord ID</label>
+        <input type="text" id="jEditDiscord" />
+      </div>
+      <div class="mgmt-field">
+        <label>Overseer Role</label>
+        <select id="jEditOverseer" style="width:100%;padding:9px 12px;background:rgba(10,5,25,0.95);border:1px solid rgba(0,229,255,0.18);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.83rem;box-sizing:border-box;">
+          <option value="">— No Overseer Role —</option>
+          <option value="Events Team Overseer">Events Team Overseer</option>
+          <option value="Training Team Overseer">Training Team Overseer</option>
+          <option value="Appeals Team Overseer">Appeals Team Overseer</option>
+          <option value="Support Team Overseer">Support Team Overseer</option>
+        </select>
+      </div>
+      <div class="mgmt-modal-footer">
+        <button class="btn btn-ghost btn-sm" onclick="closeEditJobsMember()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="confirmEditJobsMember()">✓ Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ASSIGN OVERSEER MODAL -->
+  <div class="mgmt-modal-overlay" id="assignOverseerOverlay">
+    <div class="mgmt-modal">
+      <div class="mgmt-modal-title" style="color:#ffb400;text-shadow:0 0 10px rgba(255,180,0,0.4);">⭐ Assign Overseer Role</div>
+      <input type="hidden" id="jAssignId" />
+      <div class="mgmt-field">
+        <label>Select Role</label>
+        <select id="jAssignSelect" style="width:100%;padding:9px 12px;background:rgba(10,5,25,0.95);border:1px solid rgba(255,180,0,0.3);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.83rem;box-sizing:border-box;">
+          <option value="">— Choose a role —</option>
+          <option value="Events Team Overseer">⭐ Events Team Overseer</option>
+          <option value="Training Team Overseer">⭐ Training Team Overseer</option>
+          <option value="Appeals Team Overseer">⭐ Appeals Team Overseer</option>
+          <option value="Support Team Overseer">⭐ Support Team Overseer</option>
+        </select>
+      </div>
+      <div class="mgmt-modal-footer">
+        <button class="btn btn-ghost btn-sm" onclick="closeAssignOverseer()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="confirmAssignOverseer()">⭐ Assign</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOVE JOBS MEMBER MODAL -->
+  <div class="mgmt-modal-overlay" id="moveJobsMemberOverlay">
+    <div class="mgmt-modal">
+      <div class="mgmt-modal-title">🔀 Move to Team</div>
+      <input type="hidden" id="jMoveId" />
+      <button class="move-cat-btn" onclick="confirmMoveJobsMember('training')">
+        <span style="color:var(--cyan);font-family:'Bebas Neue',sans-serif;letter-spacing:2px;">🎓 Training Team</span>
+      </button>
+      <button class="move-cat-btn" onclick="confirmMoveJobsMember('events')">
+        <span style="color:#ffb400;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;">🎉 Events Team</span>
+      </button>
+      <button class="move-cat-btn" onclick="confirmMoveJobsMember('support')">
+        <span style="color:#b266ff;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;">🛠 Support Team</span>
+      </button>
+      <button class="move-cat-btn" onclick="confirmMoveJobsMember('appeals')">
+        <span style="color:#ff4444;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;">⚖️ Appeals Team</span>
+      </button>
+      <div class="mgmt-modal-footer">
+        <button class="btn btn-ghost btn-sm" onclick="closeMoveJobsMember()">Cancel</button>
       </div>
     </div>
   </div>
@@ -3014,6 +3160,191 @@ renderStaffRoster();
   const rHint = document.getElementById('rosterAdminHint');
   if (rHint && !isAdmin) rHint.style.display = '';
 })();
+
+/* ===== STAFF COORDINATION JOBS ===== */
+const JOBS_KEY = 'staffcoord_JobsRoster';
+const JOBS_CATS = ['training','events','support','appeals'];
+const JOBS_LABELS = { training:'Training Team', events:'Events Team', support:'Support Team', appeals:'Appeals Team' };
+const JOBS_COLORS = { training:'rgba(0,229,255,0.6)', events:'rgba(255,180,0,0.6)', support:'rgba(178,102,255,0.6)', appeals:'rgba(255,60,60,0.6)' };
+const OVERSEER_ROLES = ['Events Team Overseer','Training Team Overseer','Appeals Team Overseer','Support Team Overseer'];
+
+function loadJobsRoster() {
+  try { return JSON.parse(localStorage.getItem(JOBS_KEY)) || []; } catch(e) { return []; }
+}
+function saveJobsRoster(r) { localStorage.setItem(JOBS_KEY, JSON.stringify(r)); }
+
+function renderJobsRoster() {
+  const roster = loadJobsRoster();
+  JOBS_CATS.forEach(cat => {
+    const list = document.getElementById('jlist-' + cat);
+    const countEl = document.getElementById('jcount-' + cat);
+    const catMembers = roster.filter(m => m.category === cat);
+    if (countEl) countEl.textContent = catMembers.length + ' member' + (catMembers.length !== 1 ? 's' : '');
+    if (!list) return;
+    list.innerHTML = '';
+    if (catMembers.length === 0) {
+      list.innerHTML = '<div class="mgmt-empty">No members yet</div>';
+      return;
+    }
+    catMembers.forEach(m => {
+      const div = document.createElement('div');
+      div.className = 'mgmt-member';
+      div.style.borderLeft = '3px solid ' + JOBS_COLORS[cat];
+
+      const overseerBadge = m.overseer
+        ? `<span class="overseer-badge ${isAdmin ? 'clickable' : ''}"
+             title="${isAdmin ? 'Click to remove overseer role' : m.overseer}"
+             onclick="${isAdmin ? `removeJobsOverseer('${m.id}')` : ''}">
+             ⭐ ${escHtml(m.overseer)}
+           </span>`
+        : (isAdmin ? `<span class="overseer-badge clickable" style="opacity:0.35;border-style:dashed;"
+             title="Click to assign overseer role"
+             onclick="openAssignOverseer('${m.id}')">
+             + Assign Overseer
+           </span>` : '');
+
+      div.innerHTML = `
+        <div class="mgmt-info">
+          <div class="mgmt-name" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">${escHtml(m.name)} ${overseerBadge}</div>
+          <div class="mgmt-role">${escHtml(JOBS_LABELS[cat])}</div>
+          <div class="mgmt-discord">${escHtml(m.discord || '')}</div>
+        </div>
+        <div class="mgmt-actions" style="${isAdmin ? '' : 'display:none;'}">
+          <button class="mgmt-btn" onclick="openMoveJobsMember('${m.id}')">⬆ Move</button>
+          <button class="mgmt-btn" onclick="openEditJobsMember('${m.id}')">✏</button>
+          <button class="mgmt-btn del" onclick="deleteJobsMember('${m.id}')">✕</button>
+        </div>`;
+      list.appendChild(div);
+    });
+  });
+}
+
+function submitJobsInline() {
+  if (!isAdmin) { showToast('Admin access required', 'error'); return; }
+  const name = document.getElementById('jInlineName').value.trim();
+  const discord = document.getElementById('jInlineDiscord').value.trim();
+  const category = document.getElementById('jInlineCategory').value;
+  const overseer = document.getElementById('jInlineOverseer').value;
+  if (!name) { showToast('Name is required', 'error'); return; }
+  const roster = loadJobsRoster();
+  roster.push({ id: genId(), name, discord, category, overseer: overseer || null });
+  saveJobsRoster(roster);
+  renderJobsRoster();
+  document.getElementById('jInlineName').value = '';
+  document.getElementById('jInlineDiscord').value = '';
+  document.getElementById('jInlineOverseer').value = '';
+  document.getElementById('jInlineName').focus();
+  showToast(name + ' added to ' + JOBS_LABELS[category] + '!', 'success');
+}
+
+function openAssignOverseer(id) {
+  if (!isAdmin) return;
+  document.getElementById('jAssignId').value = id;
+  document.getElementById('jAssignSelect').value = '';
+  document.getElementById('assignOverseerOverlay').classList.add('open');
+}
+function closeAssignOverseer() { document.getElementById('assignOverseerOverlay').classList.remove('open'); }
+function confirmAssignOverseer() {
+  const id = document.getElementById('jAssignId').value;
+  const role = document.getElementById('jAssignSelect').value;
+  if (!role) { showToast('Select a role', 'error'); return; }
+  const roster = loadJobsRoster();
+  const idx = roster.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  roster[idx].overseer = role;
+  saveJobsRoster(roster);
+  renderJobsRoster();
+  closeAssignOverseer();
+  showToast('⭐ ' + role + ' assigned!', 'success');
+}
+function removeJobsOverseer(id) {
+  if (!isAdmin) return;
+  const roster = loadJobsRoster();
+  const idx = roster.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  roster[idx].overseer = null;
+  saveJobsRoster(roster);
+  renderJobsRoster();
+  showToast('Overseer role removed', '');
+}
+
+function openEditJobsMember(id) {
+  if (!isAdmin) return;
+  const m = loadJobsRoster().find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('jEditId').value = id;
+  document.getElementById('jEditName').value = m.name;
+  document.getElementById('jEditDiscord').value = m.discord || '';
+  document.getElementById('jEditOverseer').value = m.overseer || '';
+  document.getElementById('editJobsMemberOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('jEditName').focus(), 50);
+}
+function closeEditJobsMember() { document.getElementById('editJobsMemberOverlay').classList.remove('open'); }
+function confirmEditJobsMember() {
+  const id = document.getElementById('jEditId').value;
+  const name = document.getElementById('jEditName').value.trim();
+  const discord = document.getElementById('jEditDiscord').value.trim();
+  const overseer = document.getElementById('jEditOverseer').value;
+  if (!name) { showToast('Name is required', 'error'); return; }
+  const roster = loadJobsRoster();
+  const idx = roster.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  roster[idx] = { ...roster[idx], name, discord, overseer: overseer || null };
+  saveJobsRoster(roster);
+  renderJobsRoster();
+  closeEditJobsMember();
+  showToast('Updated!', 'success');
+}
+
+function openMoveJobsMember(id) {
+  if (!isAdmin) return;
+  document.getElementById('jMoveId').value = id;
+  document.getElementById('moveJobsMemberOverlay').classList.add('open');
+}
+function closeMoveJobsMember() { document.getElementById('moveJobsMemberOverlay').classList.remove('open'); }
+function confirmMoveJobsMember(cat) {
+  const id = document.getElementById('jMoveId').value;
+  const roster = loadJobsRoster();
+  const idx = roster.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  roster[idx].category = cat;
+  saveJobsRoster(roster);
+  renderJobsRoster();
+  closeMoveJobsMember();
+  showToast('Moved to ' + JOBS_LABELS[cat], 'success');
+}
+
+function deleteJobsMember(id) {
+  if (!isAdmin) return;
+  if (!confirm('Remove this member?')) return;
+  saveJobsRoster(loadJobsRoster().filter(x => x.id !== id));
+  renderJobsRoster();
+  showToast('Member removed', 'success');
+}
+
+['editJobsMemberOverlay','moveJobsMemberOverlay','assignOverseerOverlay'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
+});
+
+// Hook into admin UI updates
+const _origUpdateMgmtAdminUI2 = updateMgmtAdminUI;
+updateMgmtAdminUI = function() {
+  _origUpdateMgmtAdminUI2();
+  const jForm = document.getElementById('jobsAddForm');
+  const jHint = document.getElementById('jobsAdminHint');
+  if (jForm) jForm.style.display = isAdmin ? '' : 'none';
+  if (jHint) jHint.style.display = isAdmin ? 'none' : '';
+  renderJobsRoster();
+};
+
+// Show hint on load for non-admins
+(function() {
+  const jHint = document.getElementById('jobsAdminHint');
+  if (jHint && !isAdmin) jHint.style.display = '';
+})();
+
+renderJobsRoster();
 
 // Seed roster with members — merge by discord ID, deduplicate
 (function seedRoster() {
