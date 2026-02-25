@@ -2062,8 +2062,10 @@ function checkAdmin() {
     updateMgmtAdminUI();
     closeModal('adminLoginOverlay');
     openAdminPanel();
+    sendLog('🔐 Admin Logged In via Password', { type: 'login', 'Access Level': 'Admin', Method: 'Password' });
   } else {
     showToast('Wrong password!', 'error');
+    sendLog('⛔ Failed Admin Login Attempt', { type: 'login', Reason: 'Wrong password entered', Method: 'Password' });
   }
 }
 
@@ -2232,6 +2234,7 @@ async function confirmStart() {
 
   startTicker();
   showToast(`Session started for ${name}!`, 'success');
+  sendLog('▶️ Session Started', { type: 'session', Name: name, 'Discord ID': discord, Type: type, Time: new Date().toLocaleTimeString('en-US', { hour12: true }) });
 }
 
 function startTicker() {
@@ -2289,11 +2292,13 @@ async function confirmStop() {
     summary
   });
 
+  const stoppedSession = { ...active };
   active = null;
   sessionStorage.removeItem('mrp_active');
   closeModal('stopOverlay');
   resetCard();
   showToast(`Session saved! ${fmt(el)} logged.`, 'success');
+  sendLog('⏹️ Session Ended', { type: 'session', Name: stoppedSession.name, 'Discord ID': stoppedSession.discordId, Duration: fmt(el), Type: stoppedSession.type, Summary: summary.slice(0, 80) + (summary.length > 80 ? '…' : '') });
 }
 
 function resetCard() {
@@ -2479,6 +2484,7 @@ async function removeMember(discordId) {
 
   await batch.commit();
   showToast(`Removed ${name} from the team.`, 'success');
+  sendLog('💀 Member Fully Removed', { type: 'remove', Name: name, 'Discord ID': discordId, Note: 'Member + all session data deleted' });
 }
 
 async function resetWeekly() {
@@ -2490,6 +2496,7 @@ async function resetWeekly() {
   _adminList = buildAdminList();
   filterMembers();
   showToast('Weekly hours reset!', 'success');
+  sendLog('🔄 Weekly Hours Reset', { type: 'session', Note: 'All weekly hour totals cleared', 'New Week Start': new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }) });
 }
 
 // Use base64 to safely pass discord IDs with special chars through onclick
@@ -2523,6 +2530,7 @@ async function forceStopSession(discordId) {
     await db.collection('staffcoord_actives').doc(discordId).delete();
 
     showToast(`Stopped session for ${name}. ${fmtH(duration)} logged.`, 'success');
+    sendLog('🛑 Session Force-Stopped by Admin', { type: 'session', Name: name, 'Discord ID': discordId, Duration: fmtH(duration), Note: 'No summary — admin action' });
     // Refresh admin panel
     _adminList = buildAdminList();
     renderAdminMemberList(_adminList);
@@ -2604,6 +2612,7 @@ async function _addTime(b64) {
   });
 
   showToast(`Added ${h}h ${m}m to ${name}`, 'success');
+  sendLog('➕ Hours Added (Admin Adjustment)', { type: 'session', Name: name, 'Discord ID': discordId, Added: `${h}h ${m}m` });
   openMemberDetail(discordId);
 }
 
@@ -2644,6 +2653,7 @@ async function _removeTime(b64) {
 
   if (remaining > 0) showToast(`Removed what was available. ${name} is now at 0h.`, 'success');
   else showToast(`Removed ${h}h ${m}m from ${name}`, 'success');
+  sendLog('➖ Hours Removed (Admin Adjustment)', { type: 'session', Name: name, 'Discord ID': discordId, Removed: `${h}h ${m}m`, Note: remaining > 0 ? 'Partial — member had less time than requested' : 'Full amount removed' });
   openMemberDetail(discordId);
 }
 
@@ -2717,6 +2727,8 @@ function switchPage(pageId, btn) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + pageId).classList.add('active');
   btn.classList.add('active');
+  const pageNames = { home: '🏠 Home', roster: '📋 Staff Coordination Roster', jobs: '💼 Staff Coordination Jobs', director: '🌴 Miami Directors' };
+  sendLog('👁️ Page Visited', { type: 'login', Page: pageNames[pageId] || pageId, Visitor: discordUser ? discordUser.username : (isAdmin ? 'Password Admin' : 'Guest') });
 }
 
 /* ===== MANAGEMENT ROSTER ===== */
@@ -2791,6 +2803,7 @@ function confirmAddMember() {
   renderRoster();
   closeAddMember();
   showToast('Member added!', 'success');
+  sendLog('➕ Mgmt Roster Member Added', { type: 'add', Name: name, Role: role, 'Discord ID': discord || '—', Tier: CAT_LABELS[category] });
 }
 
 // --- Edit ---
@@ -2821,6 +2834,7 @@ function confirmEditMember() {
   renderRoster();
   closeEditMember();
   showToast('Member updated!', 'success');
+  sendLog('✏️ Mgmt Roster Member Edited', { type: 'edit', Name: name, Role: role, 'Discord ID': discord || '—' });
 }
 
 // --- Move ---
@@ -2835,21 +2849,24 @@ function confirmMoveMember(cat) {
   const roster = loadRoster();
   const idx = roster.findIndex(x => x.id === id);
   if (idx === -1) return;
+  const movedMgmt = roster[idx];
   roster[idx].category = cat;
   saveRoster(roster);
   renderRoster();
   closeMoveMember();
   showToast('Moved to ' + CAT_LABELS[cat], 'success');
+  sendLog('🔀 Mgmt Roster Member Moved', { type: 'move', Name: movedMgmt.name, From: CAT_LABELS[movedMgmt.category] || '—', To: CAT_LABELS[cat] });
 }
 
-// --- Delete ---
 function deleteMember(id) {
   if (!isAdmin) { showToast('Admin access required', 'error'); return; }
   if (!confirm('Remove this member from the roster?')) return;
+  const removed = loadRoster().find(x => x.id === id);
   const roster = loadRoster().filter(x => x.id !== id);
   saveRoster(roster);
   renderRoster();
   showToast('Member removed', 'success');
+  if (removed) sendLog('🗑️ Mgmt Roster Member Removed', { type: 'remove', Name: removed.name, Role: removed.role || '—', Tier: CAT_LABELS[removed.category] || '—' });
 }
 
 // Close modals on overlay click
@@ -2930,8 +2947,8 @@ function confirmAddDirector() {
   renderDirectors();
   closeAddDirector();
   showToast('Director added!', 'success');
+  sendLog('➕ Director Added', { type: 'add', Name: name, Role: DIR_LABELS[category], 'Discord ID': discord || '—', Section: 'Miami Directors' });
 }
-
 function openEditDirector(id) {
   if (!isAdmin) { showToast('Admin access required', 'error'); return; }
   const d = loadDirectors().find(x => x.id === id);
@@ -2956,14 +2973,16 @@ function confirmEditDirector() {
   renderDirectors();
   closeEditDirector();
   showToast('Updated!', 'success');
+  sendLog('✏️ Director Edited', { type: 'edit', Name: name, Role: DIR_LABELS[dirs[idx].category], 'Discord ID': discord || '—', Section: 'Miami Directors' });
 }
-
 function deleteDirector(id) {
   if (!isAdmin) { showToast('Admin access required', 'error'); return; }
   if (!confirm('Remove this director?')) return;
+  const dir = loadDirectors().find(x => x.id === id);
   saveDirectors(loadDirectors().filter(x => x.id !== id));
   renderDirectors();
   showToast('Removed', 'success');
+  if (dir) sendLog('🗑️ Director Removed', { type: 'remove', Name: dir.name, Role: DIR_LABELS[dir.category] || '—', Section: 'Miami Directors' });
 }
 
 ['addDirectorOverlay','editDirectorOverlay'].forEach(oid => {
