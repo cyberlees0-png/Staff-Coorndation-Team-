@@ -1898,6 +1898,36 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// ===== CORE UTILITIES =====
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function genId() { return 'm_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
+
+// ===== CONSOLIDATED ADMIN UI UPDATE =====
+// Single function — no fragile override chain
+function updateMgmtAdminUI() {
+  // Director button
+  const dBtn = document.getElementById('addDirectorBtn');
+  if (dBtn) dBtn.style.display = isAdmin ? '' : 'none';
+  // Roster add form
+  const rForm = document.getElementById('rosterAddForm');
+  const rHint = document.getElementById('rosterAdminHint');
+  if (rForm) rForm.style.display = isAdmin ? '' : 'none';
+  if (rHint) rHint.style.display = isAdmin ? 'none' : '';
+  // Jobs add form
+  const jForm = document.getElementById('jobsAddForm');
+  const jHint = document.getElementById('jobsAdminHint');
+  if (jForm) jForm.style.display = isAdmin ? '' : 'none';
+  if (jHint) jHint.style.display = isAdmin ? 'none' : '';
+  // Re-render all panels
+  renderDirectors();
+  renderStaffRoster();
+  renderJobsRoster();
+}
+
+
+
 const ADMIN_PASS = 'STAFFOT';
 
 // ===== DISCORD OAUTH CONFIG =====
@@ -3001,29 +3031,7 @@ function deleteRosterMember(id) {
   });
 });
 
-// Extend admin UI to show roster inline form and hide lock notice
 
-// Base admin UI updater
-function escHtml(s) {
-  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function genId() { return 'm_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
-
-function updateMgmtAdminUI() {
-  const dBtn = document.getElementById('addDirectorBtn');
-  if (dBtn) dBtn.style.display = isAdmin ? '' : 'none';
-  renderDirectors();
-}
-
-const _origUpdateMgmtAdminUI = updateMgmtAdminUI;
-updateMgmtAdminUI = function() {
-  _origUpdateMgmtAdminUI();
-  const rForm = document.getElementById('rosterAddForm');
-  const rHint = document.getElementById('rosterAdminHint');
-  if (rForm) rForm.style.display = isAdmin ? '' : 'none';
-  if (rHint) rHint.style.display = isAdmin ? 'none' : '';
-  renderStaffRoster();
-};
 
 function submitRosterInline() {
   if (!isAdmin) { showToast('Admin access required', 'error'); return; }
@@ -3220,16 +3228,7 @@ function deleteJobsMember(id) {
   if (el) el.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
 });
 
-// Hook into admin UI updates
-const _origUpdateMgmtAdminUI2 = updateMgmtAdminUI;
-updateMgmtAdminUI = function() {
-  _origUpdateMgmtAdminUI2();
-  const jForm = document.getElementById('jobsAddForm');
-  const jHint = document.getElementById('jobsAdminHint');
-  if (jForm) jForm.style.display = isAdmin ? '' : 'none';
-  if (jHint) jHint.style.display = isAdmin ? 'none' : '';
-  renderJobsRoster();
-};
+
 
 // Show hint on load for non-admins
 (function() {
