@@ -2075,7 +2075,7 @@ async function handleDiscordCallback() {
       username: u.username,
       avatar: u.avatar
         ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64`
-        : `https://cdn.discordapp.com/embed/avatars/${Number(BigInt(u.id) % 5n)}.png`
+        : `https://cdn.discordapp.com/embed/avatars/${parseInt(u.id.slice(-4), 10) % 5}.png`
     };
 
     sessionStorage.setItem('discord_user', JSON.stringify(discordUser));
@@ -2084,7 +2084,7 @@ async function handleDiscordCallback() {
 
   } catch(e) {
     console.error('Discord auth error:', e);
-    showToast('Discord login failed — try password instead', 'error');
+    showToast('Discord login failed — ' + (e.message || 'unknown error'), 'error');
   }
 }
 
