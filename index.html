@@ -3002,6 +3002,14 @@ function deleteRosterMember(id) {
 });
 
 // Extend admin UI to show roster inline form and hide lock notice
+
+// Base admin UI updater
+function updateMgmtAdminUI() {
+  const dBtn = document.getElementById('addDirectorBtn');
+  if (dBtn) dBtn.style.display = isAdmin ? '' : 'none';
+  renderDirectors();
+}
+
 const _origUpdateMgmtAdminUI = updateMgmtAdminUI;
 updateMgmtAdminUI = function() {
   _origUpdateMgmtAdminUI();
