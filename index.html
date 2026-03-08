@@ -2483,21 +2483,40 @@ function filterMembers() {
 
 async function removeMember(discordId) {
   const member = members[discordId];
-  const name   = member?.name || discordId;
-  if (!confirm(`Remove "${name}" (${discordId}) and ALL their session data? This cannot be undone.`)) return;
+  const name   = member?.name || (actives[discordId]?.name) || discordId;
+  if (!confirm(`Remove "${name}" and ALL their session data? This cannot be undone.`)) return;
 
-  const batch = db.batch();
+  try {
+    showToast('Removing ' + name + '...', '');
 
-  // Delete member doc
-  batch.delete(db.collection('staffcoord_members').doc(discordId));
+    const batch = db.batch();
 
-  // Delete all their sessions
-  const snap = await db.collection('staffcoord_sessions').where('discordId', '==', discordId).get();
-  snap.forEach(d => batch.delete(d.ref));
+    // Delete member doc
+    batch.delete(db.collection('staffcoord_members').doc(discordId));
 
-  await batch.commit();
-  showToast(`Removed ${name} from the team.`, 'success');
-  sendLog('💀 Member Fully Removed', { type: 'remove', Name: name, 'Discord ID': discordId, Note: 'Member + all session data deleted' });
+    // Delete active session if live
+    batch.delete(db.collection('staffcoord_actives').doc(discordId));
+
+    // Delete all their sessions
+    const snap = await db.collection('staffcoord_sessions').where('discordId', '==', discordId).get();
+    snap.forEach(d => batch.delete(d.ref));
+
+    await batch.commit();
+
+    // If this is the local user's own active session, clear it
+    if (active && active.discordId === discordId) {
+      clearInterval(ticker);
+      active = null;
+      sessionStorage.removeItem('mrp_active');
+      resetCard();
+    }
+
+    showToast('Removed ' + name + ' successfully.', 'success');
+    sendLog('💀 Member Fully Removed', { type: 'remove', Name: name, 'Discord ID': discordId, Note: 'Member + sessions + active deleted' });
+  } catch(e) {
+    console.error('removeMember error:', e);
+    showToast('Remove failed: ' + e.message, 'error');
+  }
 }
 
 async function resetWeekly() {
