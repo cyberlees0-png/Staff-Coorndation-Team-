@@ -1208,6 +1208,13 @@
     box-shadow: 0 0 14px rgba(255,180,0,0.35);
     transform: scale(1.04);
   }
+
+  .lb-admin-btns { display:flex; gap:5px; margin-left:6px; }
+  .lb-btn { border:none; border-radius:7px; padding:3px 9px; font-size:0.8rem; cursor:pointer; transition:background .15s; font-weight:700; }
+  .lb-btn-reset { background:rgba(0,200,255,0.12); color:#00c8ff; border:1px solid rgba(0,200,255,0.28); }
+  .lb-btn-reset:hover { background:rgba(0,200,255,0.26); }
+  .lb-btn-remove { background:rgba(255,60,60,0.12); color:#ff5050; border:1px solid rgba(255,60,60,0.28); }
+  .lb-btn-remove:hover { background:rgba(255,60,60,0.26); }
 </style>
 <body>
 
@@ -1271,7 +1278,10 @@
   <!-- LEADERBOARD -->
   <div class="sec-head">
     <div class="sec-title">⭐ Weekly Leaderboard</div>
-    <span style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--muted)" id="weekLabel"></span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--muted)" id="weekLabel"></span>
+      <button id="resetWeekBtn" onclick="resetWeekly()" style="display:none;background:rgba(255,60,60,0.12);color:#ff5050;border:1px solid rgba(255,60,60,0.3);border-radius:8px;padding:4px 13px;font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:1px;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(255,60,60,0.25)'" onmouseout="this.style.background='rgba(255,60,60,0.12)'">🔄 RESET WEEK</button>
+    </div>
   </div>
   <div id="lbList" style="margin-bottom:36px;"></div>
 
@@ -1918,6 +1928,8 @@ function updateMgmtAdminUI() {
   // Director button
   const dBtn = document.getElementById('addDirectorBtn');
   if (dBtn) dBtn.style.display = isAdmin ? '' : 'none';
+  const rwBtn = document.getElementById('resetWeekBtn');
+  if (rwBtn) rwBtn.style.display = isAdmin ? '' : 'none';
   // Roster add form
   const rForm = document.getElementById('rosterAddForm');
   const rHint = document.getElementById('rosterAdminHint');
@@ -2364,6 +2376,7 @@ function renderLB() {
         ${isAct ? '<div class="active-pill">● LIVE</div>' : ''}
         <div class="lb-bar-wrap"><div class="lb-bar" style="width:${pct}%"></div></div>
         <div class="lb-hrs ${m.sec===0?'zero':''}">${fmtH(m.sec)}</div>
+        ${isAdmin ? `<div class="lb-admin-btns" onclick="event.stopPropagation()"><button class="lb-btn lb-btn-reset" onclick="_resetHours('${safe}')" title="Reset hours">🔁</button><button class="lb-btn lb-btn-remove" onclick="_removeMember('${safe}')" title="Remove">✕</button></div>` : ''}
       </div>`;
   }).join('');
 
@@ -2445,6 +2458,8 @@ function renderAdminMemberList(list) {
         </div>
         ${actives[m.discordId] ? `<button class="btn btn-stop btn-sm" style="padding:6px 10px;font-size:0.75rem;letter-spacing:1px;flex-shrink:0;background:rgba(255,60,60,0.15);border-color:rgba(255,60,60,0.5);color:#ff4444;"
           onclick="event.stopPropagation();_forceStop('${safeId}')" title="Force stop session">⏹ STOP</button>` : ''}
+        <button class="btn btn-sm" style="padding:6px 10px;font-size:0.75rem;letter-spacing:1px;flex-shrink:0;background:rgba(255,170,0,0.12);border:1px solid rgba(255,170,0,0.4);color:#ffaa00;border-radius:6px;cursor:pointer;font-family:'Bebas Neue',sans-serif;"
+          onclick="event.stopPropagation();_resetHours('${safeId}')" title="Reset this member's hours">↺ HOURS</button>
         <button class="btn btn-danger btn-sm" style="padding:6px 10px;font-size:0.75rem;letter-spacing:1px;flex-shrink:0;"
           onclick="event.stopPropagation();_removeMember('${safeId}')" title="Remove member">✕</button>
       </div>`;
@@ -2501,6 +2516,27 @@ async function resetWeekly() {
 function _openDetail(b64)   { openMemberDetail(atob(b64)); }
 function _removeMember(b64) { removeMember(atob(b64)); }
 function _forceStop(b64)    { forceStopSession(atob(b64)); }
+function _resetHours(b64)   { resetMemberHours(atob(b64)); }
+
+async function resetMemberHours(discordId) {
+  const member = members[discordId];
+  const name   = member?.name || discordId;
+  if (!confirm(`Reset ALL session hours for "${name}"?\n\nThis will delete every session they've ever logged and cannot be undone.`)) return;
+
+  try {
+    const snap = await db.collection('staffcoord_sessions').where('discordId', '==', discordId).get();
+    if (snap.empty) { showToast(name + ' has no session data to clear.', 'error'); return; }
+
+    const batch = db.batch();
+    snap.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+
+    showToast('Hours reset for ' + name + '.', 'success');
+    sendLog('🔁 Member Hours Reset', { type: 'remove', Name: name, 'Discord ID': discordId, 'Sessions Deleted': snap.size });
+  } catch(e) {
+    showToast('Error resetting hours: ' + e.message, 'error');
+  }
+}
 
 async function forceStopSession(discordId) {
   const activeData = actives[discordId];
