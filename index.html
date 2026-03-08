@@ -1898,6 +1898,14 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// ===== FRESH START: clear all local data once =====
+(function freshWipe() {
+  localStorage.removeItem('staffcoord_StaffRoster');
+  localStorage.removeItem('staffcoord_JobsRoster');
+  localStorage.removeItem('staffcoord_DirectorRoster');
+})();
+
+
 // ===== CORE UTILITIES =====
 function escHtml(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -2824,17 +2832,8 @@ function deleteDirector(id) {
 });
 
 // Always upsert the 4 directors with correct info
-(function() {
-  const defaults = [
-    { name: 'John',     discord: '789652968336785418', category: 'community'  },
-    { name: 'M. Alan',  discord: '719430241617051710', category: 'staff'      },
-    { name: 'A. James', discord: '601498676522778626', category: 'department' },
-    { name: 'Ivan',     discord: '329295615987154945', category: 'gang'       },
-  ];
-  let dirs = loadDirectors().filter(d => !defaults.find(def => def.category === d.category));
-  defaults.forEach(def => dirs.push({ id: genId(), ...def }));
-  saveDirectors(dirs);
-})();
+// Directors start empty — no seed data
+
 
 renderDirectors();
 
@@ -3239,56 +3238,7 @@ function deleteJobsMember(id) {
 renderJobsRoster();
 
 // Seed roster with members — merge by discord ID, deduplicate
-(function seedRoster() {
-  const seeds = [
-    { name: 'Storm',    discord: '1285357136276093874', category: 'senior',     role: 'Senior Coordinator' },
-    { name: 'Owen',     discord: '488485088984563712',  category: 'senior',     role: 'Senior Coordinator' },
-    { name: 'Trap',     discord: '1043512569719169874', category: 'management', role: 'Staff Coordinator' },
-    { name: 'Syn',      discord: '925454923499867600',  category: 'management', role: 'Staff Coordinator' },
-    { name: 'Carlton',  discord: '705955726295564368',  category: 'management', role: 'Staff Coordinator' },
-    { name: 'Stylz',    discord: '913286527874175867',  category: 'trial',      role: 'Trial Staff Coordinator', trialPhase: true },
-    { name: 'Leyne G',  discord: '1177943250518811247', category: 'trial',      role: 'Trial Staff Coordinator', trialPhase: true },
-    { name: 'Jimothly', discord: '1084312804174082189', category: 'trial',      role: 'Trial Staff Coordinator', trialPhase: true },
-  ];
-
-  let roster = loadStaffRoster();
-
-  // Step 1: Deduplicate — keep only the first entry per discord ID
-  const seen = {};
-  roster = roster.filter(m => {
-    const key = m.discord || m.id;
-    if (seen[key]) return false;
-    seen[key] = true;
-    return true;
-  });
-
-  // Step 2: Merge seeds in
-  seeds.forEach(seed => {
-    const idx = roster.findIndex(m => m.discord === seed.discord);
-    if (idx === -1) {
-      const entry = { id: genId(), ...seed };
-      if (seed.trialPhase) entry.trialPhaseStart = Date.now();
-      roster.push(entry);
-    } else {
-      roster[idx].name = seed.name;
-      roster[idx].category = seed.category;
-      roster[idx].role = seed.role;
-      // Start trial timer if moving into trial and not already running
-      if (seed.category === 'trial' && seed.trialPhase && !roster[idx].trialPhaseStart) {
-        roster[idx].trialPhase = true;
-        roster[idx].trialPhaseStart = Date.now();
-      }
-      // Clear trial if moved out
-      if (seed.category !== 'trial') {
-        roster[idx].trialPhase = false;
-        roster[idx].trialPhaseStart = null;
-      }
-    }
-  });
-
-  saveStaffRoster(roster);
-  renderStaffRoster();
-})();
+// Roster starts empty — no seed data
 
 setInterval(() => { checkTrialExpiry(); renderStaffRoster(); }, 60 * 60 * 1000);
 </script>
