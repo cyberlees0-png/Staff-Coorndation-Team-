@@ -2514,7 +2514,7 @@ async function resetWeekly() {
 
 // Use base64 to safely pass discord IDs with special chars through onclick
 function _openDetail(b64)   { openMemberDetail(atob(b64)); }
-function _removeMember(b64) { removeMember(atob(b64)); }
+function _removeMember(b64) { removeMember(atob(b64)).catch(e => showToast("Remove failed: "+e.message,"error")); }
 function _forceStop(b64)    { forceStopSession(atob(b64)); }
 function _resetHours(b64)   { resetMemberHours(atob(b64)); }
 
